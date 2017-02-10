@@ -56,6 +56,19 @@ class TestAccountView(unittest.TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertIn(TEST_ACCOUNT, r.json()['accounts'])
 
+        # Test reset password
+        r = requests.post(
+            '{}/{}'.format(
+                URL_BASE,
+                'reset_password'
+            ),
+            json={
+                'account': TEST_ACCOUNT,
+                'password': 'new_password'
+            }
+        )
+        self.assertEqual(r.status_code, 201)
+
         # Delete the account
         r = requests.delete(
             '{}/{}/{}'.format(

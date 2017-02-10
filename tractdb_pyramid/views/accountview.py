@@ -17,6 +17,13 @@ service_account_collection = cornice.Service(
     cors_credentials=True
 )
 
+service_reset_password = cornice.Service(
+    name='reset_password',
+    path='/reset_password',
+    description='TractDB Reset Password',
+    cors_origins=('*',),
+    cors_credentials=True
+)
 
 def _get_admin(request):
     # Create our admin object
@@ -88,6 +95,32 @@ def collection_post(request):
 
     # Create the account
     admin.create_account(account, account_password)
+
+    # Return appropriately
+    request.response.status_int = 201
+
+
+@service_reset_password.post()
+def reset_password_post(request):
+    """ Reset password of an account.
+    """
+
+    # Our JSON parameter, this could be validated
+    json = request.json_body
+    account = json['account']
+    account_password = json['password']
+
+    # Our admin object
+    admin = _get_admin(request)
+
+
+    # Check if the account does not exist
+    if account not in admin.list_accounts():
+        request.response.status_int = 409
+        return
+
+    # Reset the password
+    admin.reset_password(account, account_password)
 
     # Return appropriately
     request.response.status_int = 201
