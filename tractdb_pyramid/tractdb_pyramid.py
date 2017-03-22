@@ -15,9 +15,11 @@ def main(global_config, **settings):
     # Configure our pyramid app
     config = pyramid.config.Configurator(settings=settings)
 
+    pyramid_secret = settings['tractdb_pyramid_secrets']['pyramid_secret']
+
     # Authentication and Authorization
     policy_authentication = pyramid.authentication.AuthTktAuthenticationPolicy(
-        'temporary_secret_do_not_use_in_production', hashalg='sha512'
+        pyramid_secret, hashalg='sha512'
     )
     policy_authorization = pyramid.authorization.ACLAuthorizationPolicy()
 

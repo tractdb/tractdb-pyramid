@@ -17,6 +17,13 @@ service_account_collection = cornice.Service(
     cors_credentials=True
 )
 
+service_reset_password = cornice.Service(
+    name='reset_password',
+    path='/reset_password',
+    description='TractDB Reset Password',
+    cors_origins=('*',),
+    cors_credentials=True
+)
 
 def _get_admin(request):
     # Create our admin object
@@ -125,3 +132,4 @@ def collection_post(request):
 #
 #     # Return appropriately
 #     request.response.status_int = 201
+
