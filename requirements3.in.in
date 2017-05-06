@@ -2,7 +2,7 @@
 # This file compiled from requirements3.in.in
 
 cornice
-invoke=={{ local.python.invoke_version }}
+invoke=={{ python.invoke_version }}
 jinja2
 nose
 pip-tools
