@@ -68,13 +68,18 @@ def login_post(request):
 
     # If we succeeded, we can issue a cookie
     if couchdb_response.status_code == 200:
-        # Get our authentication headers
+        # Store the CouchDB cookies for communicating with CouchDB from this session
+        request.session['couchdb_cookies'] = couchdb_response.cookies
+
+        # TODO: until we can handle sessions in our server objects
+        request.session['temp_couchdb_user'] = account
+        request.session['temp_couchdb_user_password'] = account_password
+
+        # Provide authentication headers in our response
         authentication_headers = pyramid.security.remember(
             request,
             account
         )
-
-        # Include them in our response
         request.response.headerlist.extend(authentication_headers)
 
     # Return the sames status code

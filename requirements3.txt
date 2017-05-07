@@ -26,7 +26,7 @@ repoze.lru==0.6           # via pyramid
 requests==2.13.0
 simplejson==3.10.0        # via cornice
 six==1.10.0               # via packaging, pip-tools, setuptools
-tractdb==0.1.8
+tractdb==0.1.10
 translationstring==1.3    # via pyramid
 venusian==1.1.0           # via pyramid
 waitress==1.0.2

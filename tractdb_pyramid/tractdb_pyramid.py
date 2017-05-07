@@ -31,7 +31,7 @@ def main(global_config, **settings):
     config.set_authorization_policy(policy_authorization)
 
     # Sessions
-    # config.include('pyramid_beaker')
+    config.include('pyramid_beaker')
 
     # Application views
     config.include('cornice')
