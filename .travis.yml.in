@@ -71,7 +71,7 @@ script:
     sleep {{ docker.travis.compose_up_delay }}
 {% endif %}
   - |
-    invoke serve_test
+    invoke serve_test &
     sleep {{ docker.travis.compose_up_delay }}
   - nosetests tests.fast
   - nosetests

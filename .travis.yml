@@ -40,7 +40,7 @@ script:
     invoke docker_start
     sleep 60
   - |
-    invoke serve_test
+    invoke serve_test &
     sleep 60
   - nosetests tests.fast
   - nosetests
