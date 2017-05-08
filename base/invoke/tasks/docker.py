@@ -6,11 +6,16 @@ import yaml
 
 
 @invoke.task()
+def docker_machine_ensure():
+    base.docker.machine_ensure()
+
+
+@invoke.task(pre=[docker_machine_ensure])
 def docker_console():
     base.docker.machine_console()
 
 
-@invoke.task()
+@invoke.task(pre=[docker_machine_ensure])
 def docker_ip():
     print(base.docker.machine_ip())
 
@@ -44,11 +49,6 @@ def docker_localize(file_in=None, file_out=None):
                 'DOCKER_LOCALIZE_CWD': os.path.normpath(os.getcwd()).replace('\\', '/'),
                 'DOCKER_LOCALIZE_IP': base.docker.machine_ip()
             }))
-
-
-@invoke.task()
-def docker_machine_ensure():
-    base.docker.machine_ensure()
 
 
 @invoke.task(pre=[docker_localize])
