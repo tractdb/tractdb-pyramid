@@ -1,5 +1,5 @@
+import nose.tools
 import requests
-import unittest
 
 URL_BASE = 'http://localhost:8080'
 
@@ -8,8 +8,9 @@ TEST_ACCOUNT_PASSWORD = 'testaccountview_password'
 TEST_ROLE = 'testaccountview_role'
 
 
-class TestAccountView(unittest.TestCase):
-    def setUp(self):
+class TestAccountView:
+    @classmethod
+    def setup_class(cls):
         # Ensure the account does not already exist
         # (this could fail silently if the account doesn't exist)
         requests.delete(
@@ -31,7 +32,7 @@ class TestAccountView(unittest.TestCase):
                 'password': TEST_ACCOUNT_PASSWORD
             }
         )
-        self.assertEqual(r.status_code, 201)
+        nose.tools.assert_equal(r.status_code, 201)
 
         # Test the creating it again fails
         r = requests.post(
@@ -44,7 +45,7 @@ class TestAccountView(unittest.TestCase):
                 'password': TEST_ACCOUNT_PASSWORD
             }
         )
-        self.assertEqual(r.status_code, 409)
+        nose.tools.assert_equal(r.status_code, 409)
 
         # Test the account exists
         r = requests.get(
@@ -53,8 +54,8 @@ class TestAccountView(unittest.TestCase):
                 'accounts'
             )
         )
-        self.assertEqual(r.status_code, 200)
-        self.assertIn(TEST_ACCOUNT, r.json()['accounts'])
+        nose.tools.assert_equal(r.status_code, 200)
+        nose.tools.assert_in(TEST_ACCOUNT, r.json()['accounts'])
 
         # Delete the account
         r = requests.delete(
@@ -64,7 +65,7 @@ class TestAccountView(unittest.TestCase):
                 TEST_ACCOUNT
             )
         )
-        self.assertEqual(r.status_code, 200)
+        nose.tools.assert_equal(r.status_code, 200)
 
         # Test that deleting the account again fails
         r = requests.delete(
@@ -74,7 +75,7 @@ class TestAccountView(unittest.TestCase):
                 TEST_ACCOUNT
             )
         )
-        self.assertEqual(r.status_code, 404)
+        nose.tools.assert_equal(r.status_code, 404)
 
         # Test the account is gone
         r = requests.get(
@@ -83,8 +84,8 @@ class TestAccountView(unittest.TestCase):
                 'accounts'
             )
         )
-        self.assertEqual(r.status_code, 200)
-        self.assertNotIn(TEST_ACCOUNT, r.json()['accounts'])
+        nose.tools.assert_equal(r.status_code, 200)
+        nose.tools.assert_not_in(TEST_ACCOUNT, r.json()['accounts'])
 
     def test_create_and_delete_role(self):
         # Create the account
@@ -98,7 +99,7 @@ class TestAccountView(unittest.TestCase):
                 'password': TEST_ACCOUNT_PASSWORD
             }
         )
-        self.assertEqual(r.status_code, 201)
+        nose.tools.assert_equal(r.status_code, 201)
 
         # Ensure the role does not already exist
         r = requests.get(
@@ -109,8 +110,8 @@ class TestAccountView(unittest.TestCase):
                 'roles'
             )
         )
-        self.assertEqual(r.status_code, 200)
-        self.assertNotIn(TEST_ROLE, r.json()['roles'])
+        nose.tools.assert_equal(r.status_code, 200)
+        nose.tools.assert_not_in(TEST_ROLE, r.json()['roles'])
 
         # Add role
         r = requests.post(
@@ -125,7 +126,7 @@ class TestAccountView(unittest.TestCase):
                 'role': TEST_ROLE
             }
         )
-        self.assertEqual(r.status_code, 201)
+        nose.tools.assert_equal(r.status_code, 201)
 
         # Test that adding the role again fails
         r = requests.post(
@@ -140,7 +141,7 @@ class TestAccountView(unittest.TestCase):
                 'role': TEST_ROLE
             }
         )
-        self.assertEqual(r.status_code, 409)
+        nose.tools.assert_equal(r.status_code, 409)
 
         # Test the role exists
         r = requests.get(
@@ -151,8 +152,8 @@ class TestAccountView(unittest.TestCase):
                 'roles'
             )
         )
-        self.assertEqual(r.status_code, 200)
-        self.assertIn(TEST_ROLE, r.json()['roles'])
+        nose.tools.assert_equal(r.status_code, 200)
+        nose.tools.assert_in(TEST_ROLE, r.json()['roles'])
 
         # Delete the role
         r = requests.delete(
@@ -164,7 +165,7 @@ class TestAccountView(unittest.TestCase):
                 TEST_ROLE
             )
         )
-        self.assertEqual(r.status_code, 200)
+        nose.tools.assert_equal(r.status_code, 200)
 
         # Test that deleting the role again fails
         r = requests.delete(
@@ -176,7 +177,7 @@ class TestAccountView(unittest.TestCase):
                 TEST_ROLE
             )
         )
-        self.assertEqual(r.status_code, 404)
+        nose.tools.assert_equal(r.status_code, 404)
 
         # Ensure the role does not exist
         r = requests.get(
@@ -187,7 +188,7 @@ class TestAccountView(unittest.TestCase):
                 'roles'
             )
         )
-        self.assertNotIn(TEST_ROLE, r.json()['roles'])
+        nose.tools.assert_not_in(TEST_ROLE, r.json()['roles'])
 
         # Delete the account
         r = requests.delete(
@@ -197,4 +198,4 @@ class TestAccountView(unittest.TestCase):
                 TEST_ACCOUNT
             )
         )
-        self.assertEqual(r.status_code, 200)
+        nose.tools.assert_equal(r.status_code, 200)

@@ -2,20 +2,28 @@
 .idea
 *.iml
 
-# Our Python environment
+# MacOS files
+.DS_Store
+
+# Python environment
 env35
 
-# Compiled Python
-*.egg-info
+# Python compilation
 *.pyc
 
-# Localized files
-tests/test-compose.localized.yml
+# Node install packages
+node_modules
 
-# Any secrets, such as passwords or keys
+# Docker files that have been localized
+tests/full/docker/test_compose.localized.yml
+
+# Secrets that should not be committed, such as passwords or keys
 /secrets
 
-# Localized test files
+# Pyramid Python
+tractdb_pyramid.egg-info
+
+# Pyramid localized files
 pyramid_config.combined.ini
 pyramid_config.combined.localized.ini
 tests/test-compose.localized.yml
