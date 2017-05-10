@@ -38,7 +38,7 @@ def authenticated_get(request):
 
 
 def _get_couchdb_url(request):
-    return request.registry.settings.tractdb_couchdb
+    return request.registry.settings['tractdb_couchdb']
 
 
 service_login = cornice.Service(

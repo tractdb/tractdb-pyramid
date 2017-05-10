@@ -6,6 +6,7 @@ jinja2
 nose
 pip-tools
 pyramid
+pyramid_beaker
 pyyaml
 requests
 tractdb

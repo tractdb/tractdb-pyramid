@@ -21,9 +21,9 @@ service_role_collection = cornice.Service(
 def _get_admin(request):
     # Create our admin object
     admin = tractdb.server.accounts.AccountsAdmin(
-        couchdb_url=request.registry.settings.tractdb_couchdb,
-        couchdb_admin=request.registry.settings.tractdb_couchdb_secrets['admin']['user'],
-        couchdb_admin_password=request.registry.settings.tractdb_couchdb_secrets['admin']['password']
+        couchdb_url=request.registry.settings['tractdb_couchdb'],
+        couchdb_admin=request.registry.settings['tractdb_couchdb_secrets']['admin']['user'],
+        couchdb_admin_password=request.registry.settings['tractdb_couchdb_secrets']['admin']['password']
     )
 
     return admin
