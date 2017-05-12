@@ -17,6 +17,6 @@ def get(request):
             'ready',
         'couchdb':
             requests.get(
-                request.registry.settings.tractdb_couchdb
+                request.registry.settings['tractdb_couchdb']
             ).json()
     }

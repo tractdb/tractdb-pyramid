@@ -20,7 +20,7 @@ def docker_ip():
     print(base.docker.machine_ip())
 
 
-@invoke.task()
+@invoke.task(pre=[docker_machine_ensure])
 def docker_localize(file_in=None, file_out=None):
     if file_in is not None and file_out is not None:
         # If files are specified, do just those
