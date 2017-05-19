@@ -4,6 +4,8 @@
 #
 #    pip-compile --output-file requirements3.txt requirements3.in
 #
+=======
+arrow==0.10.0             # via stravalib
 beaker==1.8.1             # via pyramid-beaker
 click==6.7                # via pip-tools
 cornice==2.4.0
@@ -18,13 +20,17 @@ pastedeploy==1.5.2        # via pyramid
 pip-tools==1.9.0
 pyramid-beaker==0.8
 pyramid==1.8.3
+python-dateutil==2.6.0    # via arrow
+pytz==2017.2              # via stravalib
 pyyaml==3.12
 repoze.lru==0.6           # via pyramid
 requests==2.14.2
 simplejson==3.10.0        # via cornice
-six==1.10.0               # via pip-tools
+six==1.10.0               # via pip-tools, python-dateutil, stravalib
+stravalib==0.6.6
 tractdb==0.1.10
 translationstring==1.3    # via pyramid
+units==0.7                # via stravalib
 venusian==1.1.0           # via pyramid
 waitress==1.0.2
 webob==1.7.2              # via pyramid

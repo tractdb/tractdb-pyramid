@@ -8,6 +8,7 @@ pip-tools
 pyramid
 pyramid_beaker
 pyyaml
+stravalib
 requests
 tractdb
 waitress
