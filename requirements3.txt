@@ -4,13 +4,13 @@
 #
 #    pip-compile --output-file requirements3.txt requirements3.in
 #
-=======
 arrow==0.10.0             # via stravalib
 beaker==1.8.1             # via pyramid-beaker
 click==6.7                # via pip-tools
 cornice==2.4.0
 couchdb==1.1              # via tractdb
 first==2.0.1              # via pip-tools
+forecastiopy==0.21
 hupper==1.0               # via pyramid
 invoke==0.12.2
 jinja2==2.9.6

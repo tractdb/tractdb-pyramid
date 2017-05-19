@@ -1,6 +1,7 @@
 # This file compiled from requirements3.in.in
 
 cornice
+forecastiopy
 invoke==0.12.2
 jinja2
 nose

@@ -2,6 +2,8 @@ import cornice
 import tractdb.server.documents
 from stravalib.client import Client as StravaClient
 from stravalib import unithelper
+from forecastiopy import *
+import time
 
 service_runs = cornice.Service(
     name='storytelling_strava_runs',
@@ -34,32 +36,44 @@ def get_runs(request):
     """ Get all runs associated with an account.
     """
 
-    # Our account parameter
-    account_id = request.matchdict['id_account']
-
     # Our admin object
     admin = _get_admin(request)
 
     # Be sure it exists
-    if not admin.exists_document(account_id):
+    if not admin.exists_document('strava_access_token'):
         request.response.status_int = 404
         return
 
-    # Get the document
-    account_doc = admin.get_document(account_id)
+    # Get the access token
+    access_token = admin.get_document('strava_access_token')
 
 
-    # Make sure there's a Strava access token
-    if not 'strava_access_token' in account_doc:
+    if 'strava_access_token' not in access_token:
         request.response.status_int = 404
         return
 
-    strava_client = StravaClient(access_token=account_doc['strava_access_token'])
+    running_docs = {a:admin.get_document(a) for a in admin.list_documents() if a.startswith('run_')}
+
+    strava_client = StravaClient(access_token=access_token['strava_access_token'])
+
+
     
     runs = []
     for a in strava_client.get_activities():
-        if a.map.summary_polyline is not None:
-            runs.append({'id':a.id, 'timestamp':a.start_date_local.isoformat(), 'duration':a.elapsed_time.total_seconds(), 'map_polyline':a.map.summary_polyline, 'distance':unithelper.miles(a.distance).num})
+        if 'run_' + str(a.id) in running_docs:
+            run = running_docs['run_' + str(a.id)]
+        else:
+            run = {'id':a.id, 'timestamp':a.start_date_local.isoformat(), 'duration':a.elapsed_time.total_seconds(), 'distance':unithelper.miles(a.distance).num, 'name':a.name, 'description':a.description}
+            if a.map.summary_polyline is not None:
+                run['map_polyline'] = a.map.summary_polyline
+            if a.start_latlng is not None and a.start_date is not None:
+                fio = ForecastIO.ForecastIO(request.registry.settings['darksky_secrets']['darksky_secret'], units=ForecastIO.ForecastIO.UNITS_US, latitude=float(a.start_latlng[0]), longitude=float(a.start_latlng[1]), time=str(int(time.mktime(a.start_date.timetuple()))))
+                if fio.has_currently():
+                    currently = FIOCurrently.FIOCurrently(fio)
+                    run['temperature'] = currently.temperature
+                    run['weather_icon'] = currently.icon
+            admin.create_document(run, doc_id='run_' + str(a.id))
+        runs.append(run)
 
     # Return appropriately
     request.response.status_int = 200
@@ -73,22 +87,11 @@ def get_access_token(request):
     """ Gets whether there's an access token associated with this account.
     """
 
-    # Our account parameter
-    account_id = request.matchdict['id_account']
-
     # Our admin object
     admin = _get_admin(request)
 
     # Be sure it exists
-    if not admin.exists_document(account_id):
-        request.response.status_int = 404
-        return
-
-    # Get the document
-    account_doc = admin.get_document(account_id)
-
-    # Return appropriately
-    if not 'strava_access_token' in account_doc:
+    if not admin.exists_document('strava_access_token'):
         request.response.status_int = 404
         return
 
@@ -99,9 +102,6 @@ def get_access_token(request):
 def set_access_token(request):
     """ Set the access token associated with an account.
     """
-
-    # Our account parameter
-    account_id = request.matchdict['id_account']
 
     # Our JSON parameter
     json = request.json_body
@@ -119,7 +119,7 @@ def set_access_token(request):
     # Create the document
     doc_id = admin.create_document(
         {'strava_access_token': access_token},
-        doc_id=account_id
+        doc_id='strava_access_token'
     )
 
     # Return appropriately

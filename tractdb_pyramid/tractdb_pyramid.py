@@ -17,6 +17,11 @@ def main(global_config, **settings):
         config = yaml.safe_load(f)
     settings['tractdb_pyramid_secrets'] = config
 
+    # Parse our dark sky secrets
+    with open(settings['darksky_secrets']) as f:
+        config = yaml.safe_load(f)
+    settings['darksky_secrets'] = config
+
     # Configure our pyramid app
     config = pyramid.config.Configurator(settings=settings)
 
