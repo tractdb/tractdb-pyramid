@@ -1,4 +1,5 @@
 import cornice
+import couchdb.http
 import tractdb.server.documents
 
 service_document = cornice.Service(
@@ -29,6 +30,28 @@ def _get_admin(request):
     return admin
 
 
+@service_document.delete()
+def delete(request):
+    """ Delete a document.
+    """
+    # Our account parameter
+    doc_id = request.matchdict['id_document']
+
+    # Our admin object
+    admin = _get_admin(request)
+
+    # Be sure it exists
+    if not admin.exists_document(doc_id):
+        request.response.status_int = 404
+        return
+
+    # Delete it
+    admin.delete_document(doc_id)
+
+    # Return appropriately
+    request.response.status_int = 200
+
+
 @service_document.get()
 def get(request):
     """ Get a document.
@@ -53,26 +76,42 @@ def get(request):
     return doc
 
 
-@service_document.delete()
-def delete(request):
-    """ Delete a document.
+@service_document.post()
+def post(request):
+    """ Create a document.
     """
-    # Our account parameter
+    # Our doc_id
     doc_id = request.matchdict['id_document']
+
+    # Our JSON parameter
+    json = request.json_body
+    document = json
 
     # Our admin object
     admin = _get_admin(request)
 
-    # Be sure it exists
-    if not admin.exists_document(doc_id):
-        request.response.status_int = 404
+    # Create the document with that ID
+    try:
+        doc_id = admin.create_document(
+            document,
+            doc_id=doc_id
+        )
+    except couchdb.http.ResourceConflict:
+        request.response.status_int = 409
         return
 
-    # Delete it
-    admin.delete_document(doc_id)
-
     # Return appropriately
-    request.response.status_int = 200
+    request.response.status_int = 201
+    request.response.headerlist.extend([
+        (
+            'Location',
+            request.route_url('document', id_document=doc_id)
+        )
+    ])
+
+    return {
+        'id': doc_id
+    }
 
 
 @service_document_collection.get()
@@ -98,7 +137,7 @@ def collection_get(request):
 
 @service_document_collection.post()
 def collection_post(request):
-    """ Create an account.
+    """ Create a document.
     """
 
     # Our JSON parameter
@@ -108,10 +147,20 @@ def collection_post(request):
     # Our admin object
     admin = _get_admin(request)
 
-    # Create the document
-    doc_id = admin.create_document(
-        document
-    )
+    # Create the document, a document ID might be specified
+    try:
+        if 'id' in json:
+            doc_id = admin.create_document(
+                document,
+                doc_id=json['id']
+            )
+        else:
+            doc_id = admin.create_document(
+                document
+            )
+    except couchdb.http.ResourceConflict:
+        request.response.status_int = 409
+        return
 
     # Return appropriately
     request.response.status_int = 201
