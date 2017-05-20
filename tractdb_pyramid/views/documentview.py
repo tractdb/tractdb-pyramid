@@ -1,4 +1,5 @@
 import cornice
+import couchdb.http
 import tractdb.server.documents
 
 service_document = cornice.Service(
@@ -108,10 +109,20 @@ def collection_post(request):
     # Our admin object
     admin = _get_admin(request)
 
-    # Create the document
-    doc_id = admin.create_document(
-        document
-    )
+    # Create the document, a document ID might be specified
+    try:
+        if 'id' in json:
+            doc_id = admin.create_document(
+                document,
+                doc_id=json['id']
+            )
+        else:
+            doc_id = admin.create_document(
+                document
+            )
+    except couchdb.http.ResourceConflict:
+        request.response.status_int = 409
+        return
 
     # Return appropriately
     request.response.status_int = 201
