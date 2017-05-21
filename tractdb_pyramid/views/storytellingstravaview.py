@@ -13,14 +13,6 @@ service_runs = cornice.Service(
     cors_credentials=True
 )
 
-service_access = cornice.Service(
-    name='storytelling_strava_access',
-    path='/storytelling_strava/access_token/{id_account}',
-    description='Get or set the access token associated with an account',
-    cors_origins=('*',),
-    cors_credentials=True
-)
-
 def _get_admin(request):
     # Create our admin object
     admin = tractdb.server.documents.DocumentsAdmin(
@@ -80,57 +72,4 @@ def get_runs(request):
     return {
         'runs':
             runs
-    }
-
-@service_access.get()
-def get_access_token(request):
-    """ Gets whether there's an access token associated with this account.
-    """
-
-    # Our admin object
-    admin = _get_admin(request)
-
-    # Be sure it exists
-    if not admin.exists_document('strava_access_token'):
-        request.response.status_int = 404
-        return
-
-    request.response.status_int = 200
-    return
-
-@service_access.post()
-def set_access_token(request):
-    """ Set the access token associated with an account.
-    """
-
-    # Our JSON parameter
-    json = request.json_body
-
-    # Be sure the strava token exists
-    if not 'strava_access_token' in json:
-        request.response.status_int = 404
-        return
-
-    access_token = json['strava_access_token']
-
-    # Our admin object
-    admin = _get_admin(request)
-
-    # Create the document
-    doc_id = admin.create_document(
-        {'strava_access_token': access_token},
-        doc_id='strava_access_token'
-    )
-
-    # Return appropriately
-    request.response.status_int = 201
-    request.response.headerlist.extend([
-        (
-            'Location',
-            request.route_url('document', id_document=doc_id)
-        )
-    ])
-
-    return {
-        'id': doc_id
     }
