@@ -74,7 +74,7 @@ def get_runs(request):
                 run['map_polyline'] = a.map.summary_polyline
             if a.start_latlng is not None and a.start_date is not None:
                 fio = ForecastIO.ForecastIO(
-                    request.registry.settings['darksky_secrets']['darksky_secret'],
+                    request.registry.settings['secrets']['darksky']['darksky_secret'],
                     units=ForecastIO.ForecastIO.UNITS_US,
                     latitude=float(a.start_latlng[0]),
                     longitude=float(a.start_latlng[1]),

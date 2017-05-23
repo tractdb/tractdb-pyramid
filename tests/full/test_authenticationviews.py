@@ -16,7 +16,7 @@ class TestAuthenticationViews:
     @classmethod
     def setup_class(cls):
         # Parse our couchdb secrets
-        with open('tests/test-secrets/couchdb_secrets.yml') as f:
+        with open('tests/test-secrets/couchdb.yml') as f:
             couchdb_secrets = yaml.safe_load(f)
 
         # Create our admin object

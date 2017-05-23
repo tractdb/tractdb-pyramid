@@ -22,8 +22,8 @@ def _get_admin(request):
     # Create our admin object
     admin = tractdb.server.accounts.AccountsAdmin(
         couchdb_url=request.registry.settings['tractdb_couchdb'],
-        couchdb_admin=request.registry.settings['tractdb_couchdb_secrets']['admin']['user'],
-        couchdb_admin_password=request.registry.settings['tractdb_couchdb_secrets']['admin']['password']
+        couchdb_admin=request.registry.settings['secrets']['couchdb']['admin']['user'],
+        couchdb_admin_password=request.registry.settings['secrets']['couchdb']['admin']['password']
     )
 
     return admin

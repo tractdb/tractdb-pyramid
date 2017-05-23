@@ -4,4 +4,4 @@ test_couchdb:
   ports:
     - "5984:5984"
   volumes:
-    - "{{ DOCKER_LOCALIZE_CWD }}/tests/test-secrets/couchdb_secrets.yml:/docker-couchdb-secrets/secrets.yml"
+    - "{{ DOCKER_LOCALIZE_CWD }}/tests/test-secrets/couchdb.yml:/docker-couchdb-secrets/secrets.yml"
