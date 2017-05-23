@@ -114,6 +114,38 @@ def post(request):
     }
 
 
+@service_document.put()
+def put(request):
+    """ Modify an existing document.
+    """
+    # Our doc_id
+    doc_id = request.matchdict['id_document']
+
+    # Our JSON parameter
+    json = request.json_body
+    document = json
+
+    # Our admin object
+    admin = _get_admin(request)
+
+    # Create the document with that ID
+    try:
+        (doc_id, doc_rev) = admin.update_document(
+            document
+        )
+    except couchdb.http.ResourceConflict:
+        request.response.status_int = 409
+        return
+
+    # Return appropriately
+    request.response.status_int = 200
+
+    return {
+        'id': doc_id,
+        'rev': doc_rev
+    }
+
+
 @service_document_collection.get()
 def collection_get(request):
     """ Get a list of documents.

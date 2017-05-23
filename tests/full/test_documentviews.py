@@ -26,7 +26,7 @@ class TestDocumentViews:
     @classmethod
     def setup_class(cls):
         # Parse our couchdb secrets
-        with open('tests/test-secrets/couchdb_secrets.yml') as f:
+        with open('tests/test-secrets/couchdb.yml') as f:
             couchdb_secrets = yaml.safe_load(f)
 
         # Create our admin object
@@ -44,7 +44,7 @@ class TestDocumentViews:
             admin.delete_account(TEST_ACCOUNT)
         admin.create_account(TEST_ACCOUNT, TEST_ACCOUNT_PASSWORD)
 
-    def test_create_document_with_id_via_collection(self):
+    def test_create_document_with_id_via_path(self):
         session = requests.Session()
 
         # Login with the session
@@ -269,6 +269,90 @@ class TestDocumentViews:
             )
         )
         nose.tools.assert_equal(response.status_code, 404)
+
+    def test_create_modify_document(self):
+        session = requests.Session()
+
+        # Login with the session
+        response = session.post(
+            '{}/{}'.format(
+                URL_BASE,
+                'login'
+            ),
+            json={
+                'account': TEST_ACCOUNT,
+                'password': TEST_ACCOUNT_PASSWORD
+            }
+        )
+        nose.tools.assert_equal(response.status_code, 200)
+
+        # Create a document
+        response_post = session.post(
+            '{}/{}'.format(
+                URL_BASE,
+                'documents'
+            ),
+            json={
+                'document': TEST_DOCUMENT
+            }
+        )
+        nose.tools.assert_equal(response_post.status_code, 201)
+
+        # The body should include an ID too
+        body = response_post.json()
+        nose.tools.assert_in('id', body)
+        doc_id = body['id']
+
+        # Get the document
+        response = session.get(
+            '{}/{}/{}'.format(
+                URL_BASE,
+                'document',
+                doc_id
+            )
+        )
+        nose.tools.assert_equal(response.status_code, 200)
+        doc = response.json()
+
+        # Modify the document
+        doc.update(TEST_DOCUMENT_DIFFERENT)
+
+        # Put the modified version
+        put_response = session.put(
+            '{}/{}/{}'.format(
+                URL_BASE,
+                'document',
+                doc_id
+            ),
+            json=doc
+        )
+        nose.tools.assert_equal(put_response.status_code, 200)
+
+        # Update the rev with what we got back from the server
+        doc['_rev'] = put_response.json()['rev']
+
+        # Get the document again
+        response = session.get(
+            '{}/{}/{}'.format(
+                URL_BASE,
+                'document',
+                doc_id
+            )
+        )
+        nose.tools.assert_equal(response.status_code, 200)
+
+        # Confirm they are the same
+        nose.tools.assert_equal(doc, response.json())
+
+        # Delete the document
+        response = session.delete(
+            '{}/{}/{}'.format(
+                URL_BASE,
+                'document',
+                doc_id
+            )
+        )
+        nose.tools.assert_equal(response.status_code, 200)
 
     def test_get_documents(self):
         session = requests.Session()
