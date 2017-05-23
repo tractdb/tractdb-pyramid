@@ -10,8 +10,8 @@ import time
 
 service_runs = cornice.Service(
     name='storytelling_strava_runs',
-    path='/storytelling/strava/runs/{id_account}',
-    description='Get all runs associated with an account id',
+    path='/storytelling/strava/runs/',
+    description='Get all runs associated with the logged in user, provided they have a Strava access token',
     cors_origins=('*',),
     cors_credentials=True
 )
@@ -38,19 +38,12 @@ def get_runs(request):
 
     # Be sure it exists
     if not admin.exists_document('strava_access_token'):
-        # James Says: This should probably be an error rather than a not found
-        request.response.status_int = 404
+        request.response.status_int = 403
         return
 
     # Get the access token
     access_token = admin.get_document('strava_access_token')
 
-    # James Says: Why are you storing it within itself. If you got it, it's there?
-    if 'strava_access_token' not in access_token:
-        request.response.status_int = 404
-        return
-
-    # James Says: Why is this a dictionary, not a list?
     running_docs = {
         a:admin.get_document(a) for a in admin.list_documents() if a.startswith('run_')
     }
