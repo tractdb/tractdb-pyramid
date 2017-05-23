@@ -7,21 +7,24 @@ import yaml
 
 
 def main(global_config, **settings):
-    # Parse our couchdb secrets
-    with open(settings['tractdb_couchdb_secrets']) as f:
-        config = yaml.safe_load(f)
-    settings['tractdb_couchdb_secrets'] = config
+    # Keys that start with secrets need to be loaded from file
+    settings['secrets'] = {}
+    secrets = [key_original for key_original in settings.keys() if key_original.startswith('secrets.')]
+    for key_original in secrets:
+        path = settings[key_original]
+        key = key_original[len('secrets.'):]
 
-    # Parse our pyramid secrets
-    with open(settings['tractdb_pyramid_secrets']) as f:
-        config = yaml.safe_load(f)
-    settings['tractdb_pyramid_secrets'] = config
+        with open(settings[key_original]) as f:
+            config = yaml.safe_load(f)
+        settings['secrets'][key] = config
+
+        del settings[key_original]
 
     # Configure our pyramid app
     config = pyramid.config.Configurator(settings=settings)
 
     # Authentication and Authorization
-    pyramid_secret = settings['tractdb_pyramid_secrets']['authtktauthenticationpolicy_secret']
+    pyramid_secret = settings['secrets']['pyramid']['authtktauthenticationpolicy_secret']
     policy_authentication = pyramid.authentication.AuthTktAuthenticationPolicy(
         pyramid_secret, hashalg='sha512'
     )

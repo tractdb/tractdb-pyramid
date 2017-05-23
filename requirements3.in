@@ -1,6 +1,7 @@
 # This file compiled from requirements3.in.in
 
 cornice
+forecastiopy
 invoke==0.12.2
 jinja2
 nose
@@ -8,6 +9,7 @@ pip-tools
 pyramid
 pyramid_beaker
 pyyaml
+stravalib
 requests
 tractdb
 waitress
