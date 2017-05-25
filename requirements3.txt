@@ -28,7 +28,7 @@ requests==2.14.2
 simplejson==3.10.0        # via cornice
 six==1.10.0               # via pip-tools, python-dateutil, stravalib
 stravalib==0.6.6
-tractdb==0.1.10
+tractdb==0.1.11
 translationstring==1.3    # via pyramid
 units==0.7                # via stravalib
 venusian==1.1.0           # via pyramid

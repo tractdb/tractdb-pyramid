@@ -92,7 +92,7 @@ def post(request):
 
     # Create the document with that ID
     try:
-        doc_id = admin.create_document(
+        result = admin.create_document(
             document,
             doc_id=doc_id
         )
@@ -110,7 +110,8 @@ def post(request):
     ])
 
     return {
-        'id': doc_id
+        'id': doc_id,
+        'rev': result['rev']
     }
 
 
@@ -130,12 +131,16 @@ def put(request):
 
     # Create the document with that ID
     try:
-        (doc_id, doc_rev) = admin.update_document(
+        result = admin.update_document(
             document
         )
     except couchdb.http.ResourceConflict:
         request.response.status_int = 409
         return
+
+    # Get our id and our rev
+    doc_id = result['id']
+    doc_rev = result['rev']
 
     # Return appropriately
     request.response.status_int = 200
@@ -182,17 +187,21 @@ def collection_post(request):
     # Create the document, a document ID might be specified
     try:
         if 'id' in json:
-            doc_id = admin.create_document(
+            result = admin.create_document(
                 document,
                 doc_id=json['id']
             )
         else:
-            doc_id = admin.create_document(
+            result = admin.create_document(
                 document
             )
     except couchdb.http.ResourceConflict:
         request.response.status_int = 409
         return
+
+    # Get our id and our rev
+    doc_id = result['id']
+    doc_rev = result['rev']
 
     # Return appropriately
     request.response.status_int = 201
@@ -204,5 +213,6 @@ def collection_post(request):
     ])
 
     return {
-        'id': doc_id
+        'id': doc_id,
+        'rev': doc_rev
     }
