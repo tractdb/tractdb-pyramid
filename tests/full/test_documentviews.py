@@ -29,7 +29,7 @@ class TestDocumentViews:
         with open('tests/test-secrets/couchdb.yml') as f:
             couchdb_secrets = yaml.safe_load(f)
 
-        # Create our admin object
+        # Create an admin object that can manage accounts
         admin = tractdb.server.accounts.AccountsAdmin(
             couchdb_url='http://{}:{}'.format(
                 base.docker.machine_ip(),
@@ -39,10 +39,14 @@ class TestDocumentViews:
             couchdb_admin_password=couchdb_secrets['admin']['password']
         )
 
-        # Create the account we expect
+        # Ensure the account does not already exist
         if TEST_ACCOUNT in admin.list_accounts():
             admin.delete_account(TEST_ACCOUNT)
+
+        # Create the account we expect
         admin.create_account(TEST_ACCOUNT, TEST_ACCOUNT_PASSWORD)
+
+        # Create a session that is authenticated as this account
 
     def test_create_document_with_id_via_path(self):
         session = requests.Session()
