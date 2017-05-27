@@ -1,48 +1,50 @@
 import nose.tools
 import requests
-
-URL_BASE = 'http://localhost:8080'
-
-TEST_ACCOUNT = 'testaccountview_account'
-TEST_ACCOUNT_PASSWORD = 'testaccountview_password'
-TEST_ROLE = 'testaccountview_role'
+import tests.utilities
 
 
 class TestAccountView:
     @classmethod
     def setup_class(cls):
-        # Ensure the account does not already exist
-        # (this could fail silently if the account doesn't exist)
-        requests.delete(
-            '{}/account/{}'.format(
-                URL_BASE,
-                TEST_ACCOUNT
-            )
+        cls.utilities = tests.utilities.Utilities('TestAccountView')
+
+        # Ensure we don't already have the account
+        cls.utilities.delete_account(
+            cls.utilities.test_account_name()
+        )
+
+    @classmethod
+    def teardown_class(cls):
+        # Clean up our account
+        cls.utilities.delete_account(
+            cls.utilities.test_account_name()
         )
 
     def test_create_and_delete_account(self):
+        cls = type(self)
+
         # Create the account
         r = requests.post(
             '{}/{}'.format(
-                URL_BASE,
+                cls.utilities.url_base_pyramid(),
                 'accounts'
             ),
             json={
-                'account': TEST_ACCOUNT,
-                'password': TEST_ACCOUNT_PASSWORD
+                'account': cls.utilities.test_account_name(),
+                'password': cls.utilities.test_account_password()
             }
         )
         nose.tools.assert_equal(r.status_code, 201)
 
-        # Test the creating it again fails
+        # Creating it again should fail
         r = requests.post(
             '{}/{}'.format(
-                URL_BASE,
+                cls.utilities.url_base_pyramid(),
                 'accounts'
             ),
             json={
-                'account': TEST_ACCOUNT,
-                'password': TEST_ACCOUNT_PASSWORD
+                'account': cls.utilities.test_account_name(),
+                'password': cls.utilities.test_account_password()
             }
         )
         nose.tools.assert_equal(r.status_code, 409)
@@ -50,19 +52,19 @@ class TestAccountView:
         # Test the account exists
         r = requests.get(
             '{}/{}'.format(
-                URL_BASE,
+                cls.utilities.url_base_pyramid(),
                 'accounts'
             )
         )
         nose.tools.assert_equal(r.status_code, 200)
-        nose.tools.assert_in(TEST_ACCOUNT, r.json()['accounts'])
+        nose.tools.assert_in(cls.utilities.test_account_name(), r.json()['accounts'])
 
         # Delete the account
         r = requests.delete(
             '{}/{}/{}'.format(
-                URL_BASE,
+                cls.utilities.url_base_pyramid(),
                 'account',
-                TEST_ACCOUNT
+                cls.utilities.test_account_name()
             )
         )
         nose.tools.assert_equal(r.status_code, 200)
@@ -70,9 +72,9 @@ class TestAccountView:
         # Test that deleting the account again fails
         r = requests.delete(
             '{}/{}/{}'.format(
-                URL_BASE,
+                cls.utilities.url_base_pyramid(),
                 'account',
-                TEST_ACCOUNT
+                cls.utilities.test_account_name()
             )
         )
         nose.tools.assert_equal(r.status_code, 404)
@@ -80,122 +82,9 @@ class TestAccountView:
         # Test the account is gone
         r = requests.get(
             '{}/{}'.format(
-                URL_BASE,
+                cls.utilities.url_base_pyramid(),
                 'accounts'
             )
         )
         nose.tools.assert_equal(r.status_code, 200)
-        nose.tools.assert_not_in(TEST_ACCOUNT, r.json()['accounts'])
-
-    def test_create_and_delete_role(self):
-        # Create the account
-        r = requests.post(
-            '{}/{}'.format(
-                URL_BASE,
-                'accounts'
-            ),
-            json={
-                'account': TEST_ACCOUNT,
-                'password': TEST_ACCOUNT_PASSWORD
-            }
-        )
-        nose.tools.assert_equal(r.status_code, 201)
-
-        # Ensure the role does not already exist
-        r = requests.get(
-            '{}/{}/{}/{}'.format(
-                URL_BASE,
-                'account',
-                TEST_ACCOUNT,
-                'roles'
-            )
-        )
-        nose.tools.assert_equal(r.status_code, 200)
-        nose.tools.assert_not_in(TEST_ROLE, r.json()['roles'])
-
-        # Add role
-        r = requests.post(
-            '{}/{}/{}/{}'.format(
-                URL_BASE,
-                'account',
-                TEST_ACCOUNT,
-                'roles'
-            ),
-            json={
-                'account': TEST_ACCOUNT,
-                'role': TEST_ROLE
-            }
-        )
-        nose.tools.assert_equal(r.status_code, 201)
-
-        # Test that adding the role again fails
-        r = requests.post(
-            '{}/{}/{}/{}'.format(
-                URL_BASE,
-                'account',
-                TEST_ACCOUNT,
-                'roles'
-            ),
-            json={
-                'account': TEST_ACCOUNT,
-                'role': TEST_ROLE
-            }
-        )
-        nose.tools.assert_equal(r.status_code, 409)
-
-        # Test the role exists
-        r = requests.get(
-            '{}/{}/{}/{}'.format(
-                URL_BASE,
-                'account',
-                TEST_ACCOUNT,
-                'roles'
-            )
-        )
-        nose.tools.assert_equal(r.status_code, 200)
-        nose.tools.assert_in(TEST_ROLE, r.json()['roles'])
-
-        # Delete the role
-        r = requests.delete(
-            '{}/{}/{}/{}/{}'.format(
-                URL_BASE,
-                'account',
-                TEST_ACCOUNT,
-                'role',
-                TEST_ROLE
-            )
-        )
-        nose.tools.assert_equal(r.status_code, 200)
-
-        # Test that deleting the role again fails
-        r = requests.delete(
-            '{}/{}/{}/{}/{}'.format(
-                URL_BASE,
-                'account',
-                TEST_ACCOUNT,
-                'role',
-                TEST_ROLE
-            )
-        )
-        nose.tools.assert_equal(r.status_code, 404)
-
-        # Ensure the role does not exist
-        r = requests.get(
-            '{}/{}/{}/{}'.format(
-                URL_BASE,
-                'account',
-                TEST_ACCOUNT,
-                'roles'
-            )
-        )
-        nose.tools.assert_not_in(TEST_ROLE, r.json()['roles'])
-
-        # Delete the account
-        r = requests.delete(
-            '{}/{}/{}'.format(
-                URL_BASE,
-                'account',
-                TEST_ACCOUNT
-            )
-        )
-        nose.tools.assert_equal(r.status_code, 200)
+        nose.tools.assert_not_in(cls.utilities.test_account_name(), r.json()['accounts'])
