@@ -59,8 +59,8 @@ def set_access_token(request):
             client_secret=request.registry.settings['secrets']['strava']['strava_secret'],
             code=code)
     except:
-        # Return appropriately
-        request.response.status_int = 500
+        # Return an error
+        request.response.status_int = 502
         return
 
     # Our admin object
@@ -72,16 +72,13 @@ def set_access_token(request):
         admin.create_document({'strava_access_token': access_token}, doc_id='strava_access_token')
     else:
         # Update the stored access token
+        stored_access_token = admin.get_document('strava_access_token')
         try:
-            admin.update_document({'strava_access_token': access_token, '_id':'strava_access_token'})
+            admin.update_document({'strava_access_token': access_token, '_id':'strava_access_token', '_rev':stored_access_token['_rev']})
         except:
-            # By design, "update" seems to throw an exception? Not really sure why.
-            # But return correctly if it worked.
-            request.response.status_int = 200
-            return {
-                'access_token':
-                    access_token
-            }
+            # We likely hit a race condition where the _rev is no longer valid. Return accordingly.
+            request.response.status_int = 409
+            return
         
 
     # Return appropriately
