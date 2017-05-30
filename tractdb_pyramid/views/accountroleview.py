@@ -90,9 +90,11 @@ def collection_post(request):
     """ Create an role for an account.
     """
 
+    # Our account parameter
+    account = request.matchdict['id_account']
+
     # Our JSON parameter, this could be validated
     json = request.json_body
-    account = json['account']
     role = json['role']
 
     # Our admin object
