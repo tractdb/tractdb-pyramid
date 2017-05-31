@@ -6,8 +6,8 @@ import tractdb.server.documents
 
 service_chapters = cornice.Service(
     name='storytelling_chapters',
-    path='/storytelling/chapters',
-    description='Get all chapters associated with the logged in user',
+    path='/storytelling/chapters/{story_id}',
+    description='Get all chapters associated with a story',
     cors_origins=('*',),
     cors_credentials=True
 )
@@ -26,20 +26,33 @@ def _get_admin(request):
 
 @service_chapters.get()
 def get_chapters(request):
-    """ Get all public chapters associated with an account.
+    """ Get all chapters associated with a story.
     """
+
+    # Our story id
+    story_id = request.matchdict['story_id']
 
     # Our admin object
     admin = _get_admin(request)
 
-    # Get all chapters
+    # Be sure the story exists
+    if not admin.exists_document('story_' + story_id):
+        request.response.status_int = 404
+        return
+
+    # Get all chapters associated with the user
     all_chapter_docs = [
         admin.get_document(a) for a in admin.list_documents() if a.startswith('chapter_')
+    ]
+
+    # Filter to chapters associated with the story
+    story_chapter_docs = [
+        c for c in all_chapter_docs if 'storyId' in c and c['storyId'] == story_id
     ]
 
     # Return appropriately
     request.response.status_int = 200
     return {
         'chapters':
-            all_chapter_docs
+            story_chapter_docs
     }
