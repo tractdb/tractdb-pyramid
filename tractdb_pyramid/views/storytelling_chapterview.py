@@ -6,7 +6,7 @@ import tractdb.server.documents
 
 service_chapters = cornice.Service(
     name='storytelling_chapters',
-    path='/storytelling/chapters/{story_id}',
+    path='/storytelling/{story_id}/chapters',
     description='Get all chapters associated with a story',
     cors_origins=('*',),
     cors_credentials=True

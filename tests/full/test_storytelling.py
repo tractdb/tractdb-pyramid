@@ -3,50 +3,6 @@
 import nose.tools
 import tests.utilities
 
-TEST_STORY_ID_1 = 'st_1'
-
-TEST_STORY_DOCUMENT_1 = {
-    'storyTitle':'test story',
-    'storyType': 'diy'
-}
-
-TEST_STORY_ID_2 = 'st_2'
-
-TEST_STORY_DOCUMENT_2 = {
-    'storyTitle':'another test story',
-    'storyType': 'running'
-}
-
-TEST_CHAPTER_ID_1 = 'ch_1'
-
-TEST_CHAPTER_DOCUMENT_1 = {
-    'id': TEST_STORY_ID_1,
-    'storyId': TEST_STORY_ID_1,
-    'data': {
-        'chapterData': 'test'
-    }
-}
-
-TEST_CHAPTER_ID_2 = 'ch_2'
-
-TEST_CHAPTER_DOCUMENT_2 = {
-    'id': TEST_STORY_ID_2,
-    'storyId': TEST_STORY_ID_1,
-    'data': {
-        'chapterData': 'test 2'
-    }
-}
-
-TEST_CHAPTER_ID_3 = 'ch_3'
-
-TEST_CHAPTER_DOCUMENT_3 = {
-    'id': TEST_CHAPTER_ID_3,
-    'storyId': TEST_STORY_ID_2,
-    'data': {
-        'chapterData': 'not test'
-    }
-}
-
 class TestStorytelling:
     @classmethod
     def setup_class(cls):
@@ -83,6 +39,33 @@ class TestStorytelling:
         # Clean up our documents
         cls.utilities.delete_all_documents(cls.session)
 
+    @nose.tools.nottest
+    def get_story_document_id(self, story_id=0):
+        return 'st_{}'.format(story_id)
+
+    @nose.tools.nottest
+    def get_story_document(self, story_id=0, storyType='diy', storyTitle='test_story'):
+        return {
+            'storyType':storyType,
+            'storyTitle':'{}_{}'.format(
+                storyTitle,
+                story_id)
+        }
+
+    @nose.tools.nottest
+    def get_chapter_document_id(self, chapter_id=0):
+        return 'ch_{}'.format(chapter_id)
+
+    @nose.tools.nottest
+    def get_chapter_document(self, chapter_id=0, story_id=0):
+        return {
+            'id': 'ch_{}'.format(chapter_id),
+            'storyId': 'st_{}'.format(story_id),
+            'data': {
+                'chapterData': 'test_{}'.format(chapter_id)
+            }
+        }
+
     def test_create_story_and_get_stories(self):
         cls = type(self)
         session = cls.session
@@ -92,9 +75,9 @@ class TestStorytelling:
             '{}/{}/story_{}'.format(
                 cls.utilities.url_base_pyramid(),
                 'document',
-                TEST_STORY_ID_1
+                self.get_story_document_id(1)
             ),
-            json=TEST_STORY_DOCUMENT_1
+            json=self.get_story_document(1)
         )
         nose.tools.assert_equal(response_post.status_code, 201)
 
@@ -103,9 +86,9 @@ class TestStorytelling:
             '{}/{}/story_{}'.format(
                 cls.utilities.url_base_pyramid(),
                 'document',
-                TEST_STORY_ID_2
+                self.get_story_document_id(2)
             ),
-            json=TEST_STORY_DOCUMENT_2
+            json=self.get_story_document(story_id=2, storyType='running')
         )
         nose.tools.assert_equal(response_post.status_code, 201)
 
@@ -114,9 +97,9 @@ class TestStorytelling:
             '{}/{}/chapter_{}'.format(
                 cls.utilities.url_base_pyramid(),
                 'document',
-                TEST_CHAPTER_ID_1
+                self.get_chapter_document_id(1)
             ),
-            json=TEST_CHAPTER_DOCUMENT_1
+            json=self.get_chapter_document(chapter_id=1, story_id=1)
         )
         nose.tools.assert_equal(response_post.status_code, 201)
 
@@ -137,8 +120,8 @@ class TestStorytelling:
         for doc in docs:
             del doc['_id']
             del doc['_rev']
-        docs.remove(TEST_STORY_DOCUMENT_1)
-        docs.remove(TEST_STORY_DOCUMENT_2)
+        docs.remove(self.get_story_document(story_id=1))
+        docs.remove(self.get_story_document(story_id=2, storyType='running'))
         nose.tools.assert_equal(len(docs), 0)
 
     def test_get_chapters(self):
@@ -150,9 +133,9 @@ class TestStorytelling:
             '{}/{}/story_{}'.format(
                 cls.utilities.url_base_pyramid(),
                 'document',
-                TEST_STORY_ID_1
+                self.get_story_document_id(1)
             ),
-            json=TEST_STORY_DOCUMENT_1
+            json=self.get_story_document(story_id=1)
         )
         nose.tools.assert_equal(response_post.status_code, 201)
 
@@ -161,9 +144,9 @@ class TestStorytelling:
             '{}/{}/story_{}'.format(
                 cls.utilities.url_base_pyramid(),
                 'document',
-                TEST_STORY_ID_2
+                self.get_story_document_id(story_id=2)
             ),
-            json=TEST_STORY_DOCUMENT_2
+            json=self.get_story_document(story_id=2, storyType='running')
         )
         nose.tools.assert_equal(response_post.status_code, 201)
 
@@ -172,9 +155,9 @@ class TestStorytelling:
             '{}/{}/chapter_{}'.format(
                 cls.utilities.url_base_pyramid(),
                 'document',
-                TEST_CHAPTER_ID_1
+                self.get_chapter_document_id(1)
             ),
-            json=TEST_CHAPTER_DOCUMENT_1
+            json=self.get_chapter_document(chapter_id=1, story_id=1)
         )
         nose.tools.assert_equal(response_post.status_code, 201)
 
@@ -183,9 +166,9 @@ class TestStorytelling:
             '{}/{}/chapter_{}'.format(
                 cls.utilities.url_base_pyramid(),
                 'document',
-                TEST_CHAPTER_ID_2
+                self.get_chapter_document_id(2)
             ),
-            json=TEST_CHAPTER_DOCUMENT_2
+            json=self.get_chapter_document(chapter_id=2, story_id=1)
         )
         nose.tools.assert_equal(response_post.status_code, 201)
 
@@ -194,18 +177,19 @@ class TestStorytelling:
             '{}/{}/chapter_{}'.format(
                 cls.utilities.url_base_pyramid(),
                 'document',
-                TEST_CHAPTER_ID_3
+                self.get_chapter_document_id(3)
             ),
-            json=TEST_CHAPTER_DOCUMENT_3
+            json=self.get_chapter_document(chapter_id=3, story_id=2)
         )
         nose.tools.assert_equal(response_post.status_code, 201)
 
         # Call get_chapters on the first story, ensure we get only the two chapters
         response = session.get(
-            '{}/{}/{}'.format(
+            '{}/{}/{}/{}'.format(
                 cls.utilities.url_base_pyramid(),
-                'storytelling/chapters',
-                TEST_STORY_ID_1
+                'storytelling',
+                self.get_story_document_id(1),
+                'chapters'
             )
         )
         nose.tools.assert_equal(response.status_code, 200)
@@ -218,16 +202,17 @@ class TestStorytelling:
         for doc in docs:
             del doc['_id']
             del doc['_rev']
-        docs.remove(TEST_CHAPTER_DOCUMENT_1)
-        docs.remove(TEST_CHAPTER_DOCUMENT_2)
+        docs.remove(self.get_chapter_document(chapter_id=1, story_id=1))
+        docs.remove(self.get_chapter_document(chapter_id=2, story_id=1))
         nose.tools.assert_equal(len(docs), 0)
 
         # Call get_chapters on the second story, ensure we get only the third chapter
         response = session.get(
-            '{}/{}/{}'.format(
+            '{}/{}/{}/{}'.format(
                 cls.utilities.url_base_pyramid(),
-                'storytelling/chapters',
-                TEST_STORY_ID_2
+                'storytelling',
+                self.get_story_document_id(2),
+                'chapters'
             )
         )
         nose.tools.assert_equal(response.status_code, 200)
@@ -240,7 +225,7 @@ class TestStorytelling:
         for doc in docs:
             del doc['_id']
             del doc['_rev']
-        docs.remove(TEST_CHAPTER_DOCUMENT_3)
+        docs.remove(self.get_chapter_document(chapter_id=3, story_id=2))
         nose.tools.assert_equal(len(docs), 0)
 
     def test_add_delete_chapters(self):
@@ -252,9 +237,9 @@ class TestStorytelling:
             '{}/{}/story_{}'.format(
                 cls.utilities.url_base_pyramid(),
                 'document',
-                TEST_STORY_ID_1
+                self.get_story_document_id(1)
             ),
-            json=TEST_STORY_DOCUMENT_1
+            json=self.get_story_document(1)
         )
         nose.tools.assert_equal(response_post.status_code, 201)
 
@@ -263,9 +248,9 @@ class TestStorytelling:
             '{}/{}/chapter_{}'.format(
                 cls.utilities.url_base_pyramid(),
                 'document',
-                TEST_CHAPTER_ID_1
+                self.get_chapter_document_id(1)
             ),
-            json=TEST_CHAPTER_DOCUMENT_1
+            json=self.get_chapter_document(chapter_id=1, story_id=1)
         )
         nose.tools.assert_equal(response_post.status_code, 201)
 
@@ -274,18 +259,19 @@ class TestStorytelling:
             '{}/{}/chapter_{}'.format(
                 cls.utilities.url_base_pyramid(),
                 'document',
-                TEST_CHAPTER_ID_2
+                self.get_chapter_document_id(2)
             ),
-            json=TEST_CHAPTER_DOCUMENT_2
+            json=self.get_chapter_document(chapter_id=2, story_id=1)
         )
         nose.tools.assert_equal(response_post.status_code, 201)
 
         # Call get_chapters on the story, ensure we get the two chapters
         response = session.get(
-            '{}/{}/{}'.format(
+            '{}/{}/{}/{}'.format(
                 cls.utilities.url_base_pyramid(),
-                'storytelling/chapters',
-                TEST_STORY_ID_1
+                'storytelling',
+                self.get_story_document_id(1),
+                'chapters'
             )
         )
         nose.tools.assert_equal(response.status_code, 200)
@@ -298,8 +284,8 @@ class TestStorytelling:
         for doc in docs:
             del doc['_id']
             del doc['_rev']
-        docs.remove(TEST_CHAPTER_DOCUMENT_1)
-        docs.remove(TEST_CHAPTER_DOCUMENT_2)
+        docs.remove(self.get_chapter_document(chapter_id=1, story_id=1))
+        docs.remove(self.get_chapter_document(chapter_id=2, story_id=1))
         nose.tools.assert_equal(len(docs), 0)
 
         # Delete one of the chapters
@@ -307,17 +293,18 @@ class TestStorytelling:
             '{}/{}/chapter_{}'.format(
                 cls.utilities.url_base_pyramid(),
                 'document',
-                TEST_CHAPTER_ID_1
+                self.get_chapter_document_id(1)
             )
         )
         nose.tools.assert_equal(response_delete.status_code, 200)
 
         # Call get_chapters on the story, ensure we now only have one chapter
         response = session.get(
-            '{}/{}/{}'.format(
+            '{}/{}/{}/{}'.format(
                 cls.utilities.url_base_pyramid(),
-                'storytelling/chapters',
-                TEST_STORY_ID_1
+                'storytelling',
+                self.get_story_document_id(1),
+                'chapters'
             )
         )
         nose.tools.assert_equal(response.status_code, 200)
@@ -330,5 +317,5 @@ class TestStorytelling:
         for doc in docs:
             del doc['_id']
             del doc['_rev']
-        docs.remove(TEST_CHAPTER_DOCUMENT_2)
+        docs.remove(self.get_chapter_document(chapter_id=2, story_id=1))
         nose.tools.assert_equal(len(docs), 0)
