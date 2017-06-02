@@ -10,8 +10,16 @@ import time
 
 service_runs = cornice.Service(
     name='storytelling_strava_runs',
-    path='/storytelling/strava/runs/',
+    path='/storytelling/strava/runs',
     description='Get all runs associated with the logged in user, provided they have a Strava access token',
+    cors_origins=('*',),
+    cors_credentials=True
+)
+
+service_access_token = cornice.Service(
+    name='storytelling_strava_access_token',
+    path='/storytelling/strava/access_token',
+    description='Set the access token by exchanging the code provided by Strava',
     cors_origins=('*',),
     cors_credentials=True
 )
@@ -26,6 +34,61 @@ def _get_admin(request):
     )
 
     return admin
+
+@service_access_token.put()
+def set_access_token(request):
+    """ Exchange the provided code for an access token and store it
+    """
+
+    # Our strava code
+    json = request.json_body
+    code = json['code']
+
+    # If we don't have a strava secret, we can't make the key exchange
+    if 'strava' not in request.registry.settings['secrets']:
+        request.response.status_int = 500
+        return
+
+    # Exchange the code for an access token
+    # The API will throw an unspecified error if code is invalid.
+    # Catch that rather than taking down the server.
+    access_token = ""
+
+    try:
+        client = StravaClient()
+        access_token = client.exchange_code_for_token(client_id=request.registry.settings['secrets']['strava']['strava_id'],
+            client_secret=request.registry.settings['secrets']['strava']['strava_secret'],
+            code=code)
+    except:
+        # Return an error
+        request.response.status_int = 502
+        return
+
+    # Our admin object
+    admin = _get_admin(request)
+
+    #Create the access token if it doesn't exist, or update the stored one
+    if not admin.exists_document('strava_access_token'):
+        # Store the access token
+        admin.create_document({'strava_access_token': access_token}, doc_id='strava_access_token')
+    else:
+        # Update the stored access token
+        stored_access_token = admin.get_document('strava_access_token')
+        try:
+            admin.update_document({'strava_access_token': access_token, '_id':'strava_access_token', '_rev':stored_access_token['_rev']})
+        except:
+            # We likely hit a race condition where the _rev is no longer valid. Return accordingly.
+            request.response.status_int = 409
+            return
+        
+
+    # Return appropriately
+    request.response.status_int = 200
+    return {
+        'access_token':
+            access_token
+    }
+    
 
 
 @service_runs.get()
@@ -65,7 +128,7 @@ def get_runs(request):
             }
             if a.map.summary_polyline is not None:
                 run['map_polyline'] = a.map.summary_polyline
-            if a.start_latlng is not None and a.start_date is not None:
+            if a.start_latlng is not None and a.start_date is not None and 'darksky' in request.registry.settings['secrets']:
                 fio = ForecastIO.ForecastIO(
                     request.registry.settings['secrets']['darksky']['darksky_secret'],
                     units=ForecastIO.ForecastIO.UNITS_US,
