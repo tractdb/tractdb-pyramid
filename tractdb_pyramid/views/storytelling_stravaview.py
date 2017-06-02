@@ -10,7 +10,7 @@ import time
 
 service_runs = cornice.Service(
     name='storytelling_strava_runs',
-    path='/storytelling/strava/runs/',
+    path='/storytelling/strava/runs',
     description='Get all runs associated with the logged in user, provided they have a Strava access token',
     cors_origins=('*',),
     cors_credentials=True
@@ -18,7 +18,7 @@ service_runs = cornice.Service(
 
 service_access_token = cornice.Service(
     name='storytelling_strava_access_token',
-    path='/storytelling/strava/access_token/{code}',
+    path='/storytelling/strava/access_token',
     description='Set the access token by exchanging the code provided by Strava',
     cors_origins=('*',),
     cors_credentials=True
@@ -35,13 +35,14 @@ def _get_admin(request):
 
     return admin
 
-@service_access_token.post()
+@service_access_token.put()
 def set_access_token(request):
     """ Exchange the provided code for an access token and store it
     """
 
     # Our strava code
-    code = request.matchdict['code']
+    json = request.json_body
+    code = json['code']
 
     # If we don't have a strava secret, we can't make the key exchange
     if 'strava' not in request.registry.settings['secrets']:
