@@ -1,0 +1,3 @@
+# Secret for strava
+strava_id: 0
+strava_secret: 'strava-secret-test'
