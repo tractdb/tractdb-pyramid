@@ -6,6 +6,7 @@ forecastiopy
 invoke=={{ python.invoke_version }}
 jinja2
 nose
+pillow
 pip-tools
 pyramid
 pyramid_beaker
