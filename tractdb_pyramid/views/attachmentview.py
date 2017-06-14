@@ -80,7 +80,8 @@ def get(request):
     # Return appropriately
     request.response.status_int = 200
     request.response.content_type = result['content_type']
-    request.response.body = result['content'].getvalue()
+    request.response.body = result['content'].read()
+    result['content'].close()
 
     return request.response
 
