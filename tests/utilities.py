@@ -1,5 +1,9 @@
 import base.docker
+import io
 import nose.tools
+import PIL.Image
+import PIL.ImageDraw
+import PIL.ImageFont
 import requests
 import tractdb.server.accounts
 import yaml
@@ -113,6 +117,12 @@ class Utilities:
             account_index
         ).lower()
 
+    def test_attachment_name(self, attachment_index=0):
+        return 'attachment_{}_{}'.format(
+            self._context,
+            attachment_index
+        ).lower()
+
     def test_document(self, document_index=0):
         return {
             'test_field':
@@ -131,7 +141,22 @@ class Utilities:
         return 'document_id_{}_{}'.format(
             self._context,
             document_index
+        ).lower()
+
+    def test_image_bytes(self, image_index=0):
+        test_image = PIL.Image.new('RGBA', (1024, 1024))
+        drawing = PIL.ImageDraw.Draw(test_image)
+
+        drawing.text(
+            (512, 512),
+            '{}'.format(image_index)
         )
+
+        image_bytes = io.BytesIO()
+        test_image.save(image_bytes, 'png')
+        image_bytes.seek(0)
+
+        return image_bytes.getvalue()
 
     def test_role(self, role_index=0):
         return 'role_{}_{}'.format(
