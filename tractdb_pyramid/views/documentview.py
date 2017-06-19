@@ -110,8 +110,8 @@ def post(request):
     ])
 
     return {
-        'id': doc_id,
-        'rev': result['rev']
+        '_id': doc_id,
+        '_rev': result['rev']
     }
 
 
@@ -146,8 +146,8 @@ def put(request):
     request.response.status_int = 200
 
     return {
-        'id': doc_id,
-        'rev': doc_rev
+        '_id': doc_id,
+        '_rev': doc_rev
     }
 
 
@@ -213,6 +213,6 @@ def collection_post(request):
     ])
 
     return {
-        'id': doc_id,
-        'rev': doc_rev
+        '_id': doc_id,
+        '_rev': doc_rev
     }
