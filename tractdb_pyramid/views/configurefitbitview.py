@@ -1,6 +1,7 @@
 import base64
 import cornice
 import requests
+import tractdb.server.documents
 
 service_configure_fitbit = cornice.Service(
     name='configure fitbit',
@@ -30,7 +31,7 @@ def post(request):
     admin = _get_admin(request)
 
     # Need a Fitbit secret to make the exchange
-    secrets_fitbit= request.registry.settings['secrets'].get('fitbit', None)
+    secrets_fitbit = request.registry.settings['secrets'].get('fitbit', None)
     if secrets_fitbit is None:
         request.response.status_int = 500
         return
