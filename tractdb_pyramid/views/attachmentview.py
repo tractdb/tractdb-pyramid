@@ -124,8 +124,8 @@ def post(request):
     request.response.status_int = 201
 
     return {
-        'id': doc_id,
-        'rev': result['rev']
+        '_id': doc_id,
+        '_rev': result['rev']
     }
 
 
@@ -163,8 +163,8 @@ def put(request):
     request.response.status_int = 200
 
     return {
-        'id': doc_id,
-        'rev': result['rev']
+        '_id': doc_id,
+        '_rev': result['rev']
     }
 
 
