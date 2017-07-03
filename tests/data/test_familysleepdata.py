@@ -13,10 +13,6 @@ class TestFamilySleepData:
         data = []
         data.extend([
             TestFamilySleepData.ID_Doc_Tuple(
-                'fitbit_tokens',
-                self._TEST_TOKENS
-            ),
-            TestFamilySleepData.ID_Doc_Tuple(
                 'familysleep_personas',
                 self._TEST_PERSONAS
             )
@@ -130,49 +126,6 @@ class TestFamilySleepData:
                     'pid': 'm4',
                     'fitbit': '22TL6D'
                 }
-            }
-        }
-
-    @property
-    def _TEST_TOKENS(self):
-        return {
-            'fitbit_tokens': {
-                '_id': 'fitbit_tokens',
-                '_rev': '1-e73c34cff5a766f172a405f916c44492',
-                'fitbit_tokens': [
-                    {
-                        'access_token': 'DELETED',
-                        'expires_in': 28800,
-                        'refresh_token': 'DELETED',
-                        'scope': 'activity heartrate weight sleep settings profile nutrition social location',
-                        'token_type': 'Bearer',
-                        'user_id': '4KBZLY'
-                    },
-                    {
-                        'access_token': 'DELETED',
-                        'expires_in': 28800,
-                        'refresh_token': 'DELETED',
-                        'scope': 'activity heartrate weight sleep settings profile nutrition social location',
-                        'token_type': 'Bearer',
-                        'user_id': '4KB123'
-                    },
-                    {
-                        'access_token': 'DELETED',
-                        'expires_in': 28800,
-                        'refresh_token': 'DELETED',
-                        'scope': 'activity heartrate weight sleep settings profile nutrition social location',
-                        'token_type': 'Bearer',
-                        'user_id': '4KATL6'
-                    },
-                    {
-                        'access_token': 'DELETED',
-                        'expires_in': 28800,
-                        'refresh_token': 'DELETED',
-                        'scope': 'weight activity settings location profile social heartrate nutrition sleep',
-                        'token_type': 'Bearer',
-                        'user_id': '22TL6D'
-                    }
-                ]
             }
         }
 
