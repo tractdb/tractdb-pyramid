@@ -119,6 +119,15 @@ def _compute_minutes_chart_data(*, fitbit_minute_data, time_start=datetime.time(
 
         minutes_chart_data[current_sleep_value_text] = current_sleep_chart_data
 
+    # Compute a label for each bucket
+    minutes_chart_data['labels'] = [
+        (
+            datetime.datetime.combine(datetime.date.min, time_start) + datetime.timedelta(minutes=current_minute)
+        ).strftime('%I:%M %p')
+        for current_minute
+        in range(0, number_minutes_to_plot)
+    ]
+
     return minutes_chart_data
 
 

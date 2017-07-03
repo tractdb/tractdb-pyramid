@@ -147,7 +147,7 @@ class TestFamilySleepView:
         )
 
         doc_computed_simplified = copy.deepcopy(doc_computed)
-        for current_key in ['one', 'two', 'three']:
+        for current_key in ['one', 'two', 'three', 'labels']:
             doc_computed_simplified['m3']['2017-06-07']['minuteData'][current_key] = \
                 doc_computed_simplified['m3']['2017-06-07']['minuteData'][current_key][:5]
             doc_computed_simplified['m3']['2017-06-07']['minuteData'][current_key].append('.....')
@@ -203,7 +203,7 @@ class TestFamilySleepView:
 
         doc_computed_simplified = copy.deepcopy(doc_computed)
         for current_date in ['2017-06-01', '2017-06-02', '2017-06-03', '2017-06-04', '2017-06-05', '2017-06-06', '2017-06-07']:
-            for current_key in ['one', 'two', 'three']:
+            for current_key in ['one', 'two', 'three', 'labels']:
                 doc_computed_simplified['m3'][current_date]['minuteData'][current_key] = \
                     doc_computed_simplified['m3'][current_date]['minuteData'][current_key][:5]
                 doc_computed_simplified['m3'][current_date]['minuteData'][current_key].append('.....')
