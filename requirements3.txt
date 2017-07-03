@@ -33,7 +33,7 @@ requests==2.17.3
 simplejson==3.10.0        # via cornice
 six==1.10.0               # via pip-tools, python-dateutil, stravalib
 stravalib==0.6.6
-tractdb==0.1.12
+tractdb==0.1.14
 translationstring==1.3    # via pyramid
 units==0.7                # via stravalib
 urllib3==1.21.1           # via requests
