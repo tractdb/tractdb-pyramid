@@ -8,6 +8,10 @@ import uuid
 class TestFamilySleepData:
     ID_Doc_Tuple = collections.namedtuple('ID_Doc_Tuple', ['doc_id', 'doc'])
 
+    def __init__(self, *, date_start='2017-06-01', date_end='2017-06-10'):
+        self._date_start = date_start
+        self._date_end = date_end
+
     @property
     def TEST_DATA(self):
         data = []
@@ -35,8 +39,8 @@ class TestFamilySleepData:
     @property
     def _TEST_SLEEP_DATA(self):
         # Configure the date range we will simulate
-        simulate_start = datetime.datetime.strptime('2017-06-01', '%Y-%m-%d')
-        simulate_end = datetime.datetime.strptime('2017-07-01', '%Y-%m-%d')
+        simulate_start = datetime.datetime.strptime(self._date_start, '%Y-%m-%d')
+        simulate_end = datetime.datetime.strptime(self._date_end, '%Y-%m-%d')
         dates_simulate = [simulate_start + datetime.timedelta(days=x) for x in
                           range(0, (simulate_end - simulate_start).days)]
         dates_simulate = [date.strftime('%Y-%m-%d') for date in dates_simulate]
