@@ -5,6 +5,7 @@ import PIL.Image
 import PIL.ImageDraw
 import PIL.ImageFont
 import requests
+import tractdb.client
 import tractdb.server.accounts
 import yaml
 
@@ -26,6 +27,17 @@ class Utilities:
 
         # Assert they are equal
         nose.tools.assert_equal(doc1copy, doc2copy)
+
+    @classmethod
+    def client(cls, *, account, password):
+        # Create the client
+        client = tractdb.client.TractDBClient(
+            tractdb_url=cls.url_base_pyramid(),
+            account=account,
+            password=password
+        )
+
+        return client
 
     def create_admin(self):
         # Parse our couchdb secrets
