@@ -16,6 +16,14 @@ service_runs = cornice.Service(
     cors_credentials=True
 )
 
+service_n_runs = cornice.Service(
+    name='storytelling_strava_n_runs',
+    path='/storytelling/strava/runs/{num_runs}',
+    description='Get most recent n runs associated with the logged in user, provided they have a Strava access token',
+    cors_origins=('*',),
+    cors_credentials=True
+)
+
 service_access_token = cornice.Service(
     name='storytelling_strava_access_token',
     path='/storytelling/strava/access_token',
@@ -92,8 +100,17 @@ def set_access_token(request):
 
 
 @service_runs.get()
-def get_runs(request):
-    """ Get all runs associated with an account.
+def get_all_runs(request):
+    return get_runs(request, None)
+
+@service_n_runs.get()
+def get_n_runs(request):
+    # n runs
+    n = int(request.matchdict['num_runs'])
+    return get_runs(request, n)
+
+def get_runs(request, n):
+    """ Get most recent n runs associated with an account.
     """
 
     # Our admin object
@@ -143,6 +160,8 @@ def get_runs(request):
             admin.create_document(run, doc_id='run_' + str(a.id))
 
         runs.append(run)
+        if n is not None and len(runs) == n:
+            break
 
     # Return appropriately
     request.response.status_int = 200
