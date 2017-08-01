@@ -117,10 +117,12 @@ def post(request):
 
 @service_document.put()
 def put(request):
-    """ Modify an existing document.
+    """ Create a document, or modify an existing document.
     """
     # Our doc_id
     doc_id = request.matchdict['id_document']
+
+    # TODO: ensure consistent
 
     # Our JSON parameter
     json = request.json_body
@@ -131,9 +133,25 @@ def put(request):
 
     # Create the document with that ID
     try:
-        result = admin.update_document(
-            document
-        )
+        if not admin.exists_document(doc_id):
+            result = admin.create_document(
+                document,
+                doc_id=doc_id
+            )
+
+            result_status = 201
+        else:
+            if not '_rev' in document:
+                request.response.status_int = 409
+                return
+
+            result = admin.update_document(
+                document,
+                doc_id=doc_id
+            )
+
+            result_status = 200
+
     except couchdb.http.ResourceConflict:
         request.response.status_int = 409
         return
@@ -143,7 +161,7 @@ def put(request):
     doc_rev = result['rev']
 
     # Return appropriately
-    request.response.status_int = 200
+    request.response.status_int = result_status
 
     return {
         '_id': doc_id,

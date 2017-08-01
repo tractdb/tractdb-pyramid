@@ -38,7 +38,7 @@ class TestDocumentView:
         # Clean up our documents
         cls.utilities.delete_all_documents(cls.session)
 
-    def test_create_document_with_id_via_path(self):
+    def test_create_document_with_id_using_post_to_path(self):
         cls = type(self)
         session = cls.session
 
@@ -81,7 +81,50 @@ class TestDocumentView:
         )
         nose.tools.assert_equal(response_post.status_code, 409)
 
-    def test_create_document_with_id_via_collection(self):
+    def test_create_document_with_id_using_put_to_path(self):
+        cls = type(self)
+        session = cls.session
+
+        # Create a document with a particular ID
+        response_post = session.put(
+            '{}/{}/{}'.format(
+                cls.utilities.url_base_pyramid(),
+                'document',
+                cls.utilities.test_document_id()
+            ),
+            json=cls.utilities.test_document()
+        )
+        nose.tools.assert_equal(response_post.status_code, 201)
+
+        # Get the document via that ID
+        response = session.get(
+            '{}/{}/{}'.format(
+                cls.utilities.url_base_pyramid(),
+                'document',
+                cls.utilities.test_document_id()
+            )
+        )
+        nose.tools.assert_equal(response.status_code, 200)
+        doc = response.json()
+
+        # Confirm it's our document
+        cls.utilities.assert_docs_equal_ignoring_id_rev(
+            doc,
+            cls.utilities.test_document()
+        )
+
+        # Try creating it again, should fail because it already exists and we're not providing the revision
+        response_post = session.put(
+            '{}/{}/{}'.format(
+                cls.utilities.url_base_pyramid(),
+                'document',
+                cls.utilities.test_document_id()
+            ),
+            json=cls.utilities.test_document()
+        )
+        nose.tools.assert_equal(response_post.status_code, 409)
+
+    def test_create_document_with_id_using_post_to_collection(self):
         cls = type(self)
         session = cls.session
 
