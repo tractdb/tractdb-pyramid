@@ -1,6 +1,16 @@
+import base64
 import cornice
 import datetime
+import requests
 import tractdb.server.documents
+
+service_fitbitquery = cornice.Service(
+    name='familysleep_fitbitquery',
+    path='/familysleep/fitbitquery',
+    description='Get Fitbit sleep data for known devices',
+    cors_origins=('*',),
+    cors_credentials=True
+)
 
 service_family_daily = cornice.Service(
     name='familysleep_familydaily',
@@ -63,6 +73,7 @@ def _prepare_content_empty_day_sleep(*, docs, pid, date):
     doc_result['endTime'] = -1
 
     return doc_result
+
 
 def _compute_minutes_chart_data(*, fitbit_minute_data, time_start=datetime.time(hour=17), time_end=datetime.time(hour=8)):
     # Determine how 'long' our chart data is
@@ -238,6 +249,8 @@ def _compute_single_weekly(*, docs, pid, date, with_chart_data):
 
 @service_family_daily.get()
 def service_family_daily_get(request):
+    _fitbitquery(request)
+
     # Parameters
     date = request.matchdict['date']
 
@@ -267,6 +280,8 @@ def service_family_daily_get(request):
 
 @service_family_weekly.get()
 def service_family_weekly_get(request):
+    _fitbitquery(request)
+
     # Parameters
     date = request.matchdict['date']
 
@@ -300,6 +315,8 @@ def service_family_weekly_get(request):
 
 @service_single_daily.get()
 def service_single_daily_get(request):
+    _fitbitquery(request)
+
     # Parameters
     pid = request.matchdict['pid']
     date = request.matchdict['date']
@@ -329,6 +346,8 @@ def service_single_daily_get(request):
 
 @service_single_weekly.get()
 def service_single_weekly_get(request):
+    _fitbitquery(request)
+
     # Parameters
     pid = request.matchdict['pid']
     date = request.matchdict['date']
@@ -358,3 +377,179 @@ def service_single_weekly_get(request):
     request.response.status_int = 200
 
     return doc_result
+
+
+def _fitbitquery(request):
+    logs = []
+
+    logs.append('initiating query')
+
+    # Admin object
+    admin = _get_admin(request)
+
+    # Get the personas
+    doc_personas = admin.get_document(doc_id='familysleep_personas')
+
+    # Get the fitbit tokens
+    doc_fitbittokens = admin.get_document(doc_id='fitbit_tokens')
+    fitbittokens_by_id = {
+        token_current['user_id']: token_current for token_current in doc_fitbittokens['fitbit_tokens']
+    }
+
+    logs.append('got personas and tokens')
+
+    # Start a session with Fitbit
+    session_fitbit = requests.Session()
+
+    # Go through the personas, check how long since we updated their data
+    for key_current, persona_current in doc_personas['personas'].items():
+        logs.append(
+            'processing persona {}'.format(
+                persona_current['name']
+            )
+        )
+
+        # See when we updated and when we renewed
+        datetime_now = datetime.datetime.now()
+        timestamp_updated = persona_current.get('fitbit_updated', 0)
+        timestamp_renewed = persona_current.get('fitbit_renewed', 0)
+        timestamp_current = int(datetime_now.timestamp())
+
+        # Time since renewed
+        logs.append(
+            'time since renewed {}'.format(
+                timestamp_current - timestamp_renewed
+            )
+        )
+
+        if timestamp_current - timestamp_renewed > (4 * 60 * 60):
+            logs.append('DO RENEW')
+
+            # Get our renewal token
+            refresh_token = fitbittokens_by_id[persona_current['fitbit']]['refresh_token']
+
+            # Issue the renewal request
+            response = session_fitbit.post(
+                'https://api.fitbit.com/oauth2/token',
+                headers={
+                    'Authorization':
+                        'Basic {}'.format(
+                            base64.b64encode('{}:{}'.format(
+                                request.registry.settings['secrets']['fitbit']['fitbit_id'],
+                                request.registry.settings['secrets']['fitbit']['fitbit_secret']
+                            ).encode('utf-8')).decode('utf-8')
+                        )
+                },
+                data={
+                    'grant_type': 'refresh_token',
+                    'refresh_token': refresh_token,
+                    'redirect_uri': request.registry.settings['secrets']['fitbit']['fitbit_redirect_uri']
+                }
+            )
+
+            # Store our updated token
+            fitbittokens_by_id[persona_current['fitbit']] = response.json()
+            doc_fitbittokens['fitbit_tokens'] = list(fitbittokens_by_id.values())
+            doc_fitbittokens.update(
+                admin.update_document(
+                    doc_fitbittokens
+                )
+            )
+
+            # Store our updated renewal time
+            persona_current['fitbit_renewed'] = timestamp_current
+            doc_personas.update(
+                admin.update_document(
+                    doc_personas
+                )
+            )
+
+        # Time since updated
+        logs.append(
+            'time since updated {}'.format(
+                timestamp_current - timestamp_updated
+            )
+        )
+
+        if timestamp_current - timestamp_updated > (10 * 60):
+            logs.append('DO UPDATE')
+
+            dates_query = [datetime_now - datetime.timedelta(days=x) for x in range(0, 60)]
+            dates_query = [date.strftime('%Y-%m-%d') for date in dates_query]
+
+            # Filter out documents where we already have more recent data, as they should be stable by now
+            for index_current, date_current in enumerate(dates_query):
+                doc_id = 'fitbit-{}-sleep-{}'.format(
+                    persona_current['fitbit'],
+                    date_current
+                )
+
+                if admin.exists_document(doc_id=doc_id):
+                    # Document already exists, so we'll skip any documents 2 days older than this one
+                    dates_query = dates_query[:min(len(dates_query), index_current + 2 + 1)]
+                    break
+
+            access_token = fitbittokens_by_id[persona_current['fitbit']]['access_token']
+
+            # Query old dates in chronological order, so we don't have more recent data with gaps behind
+            dates_query = reversed(dates_query)
+            for date_current in dates_query:
+                logs.append('query date {}'.format(date_current))
+
+                doc_id = 'fitbit-{}-sleep-{}'.format(
+                    persona_current['fitbit'],
+                    date_current
+                )
+
+                response = session_fitbit.get(
+                    'https://api.fitbit.com/1/user/{}/sleep/date/{}.json'.format(
+                        persona_current['fitbit'],
+                        date_current
+                    ),
+                    headers={
+                        'Authorization':
+                            'Bearer {}'.format(access_token)
+                    }
+                )
+
+                data_fitbit = response.json()
+                if 'sleep' in data_fitbit:
+                    # Get the main sleep object
+                    data_sleep = next(
+                        (
+                            entry for entry in data_fitbit['sleep'] if entry['isMainSleep']
+                        ),
+                        None
+                    )
+
+                    if data_sleep:  # not an empty list
+                        logs.append('storing')
+
+                        if admin.exists_document(doc_id=doc_id):
+                            doc_rev = admin.get_document(doc_id=doc_id)['_rev']
+                            admin.update_document(
+                                doc=data_sleep,
+                                doc_id=doc_id,
+                                doc_rev=doc_rev
+                            )
+                        else:
+                            admin.create_document(data_sleep, doc_id=doc_id)
+
+            persona_current['fitbit_updated'] = timestamp_current
+            doc_personas.update(
+                admin.update_document(
+                    doc_personas
+                )
+            )
+
+    # Return appropriately
+    return {
+        'logs': logs
+    }
+
+
+@service_fitbitquery.get()
+def service_fitbitquery_get(request):
+    request.response.status_int = 200
+
+    return _fitbitquery(request)
