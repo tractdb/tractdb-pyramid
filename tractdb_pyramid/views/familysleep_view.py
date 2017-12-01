@@ -387,6 +387,14 @@ def _fitbitquery(request):
     # Admin object
     admin = _get_admin(request)
 
+    # Check we have what we'll need
+    if not admin.exists_document(doc_id='familysleep_personas'):
+        logs.append('no familysleep_personas document')
+        return
+    if not admin.exists_document(doc_id='fitbit_tokens'):
+        logs.append('no familysleep_personas document')
+        return
+
     # Get the personas
     doc_personas = admin.get_document(doc_id='familysleep_personas')
 
@@ -414,6 +422,10 @@ def _fitbitquery(request):
         timestamp_updated = persona_current.get('fitbit_updated', 0)
         timestamp_renewed = persona_current.get('fitbit_renewed', 0)
         timestamp_current = int(datetime_now.timestamp())
+        timestamp_oldest_allowable_query = persona_current.get(
+            'fitbit_oldest_allowable_query',
+            (datetime_now - datetime.timedelta(days=7)).timestamp()
+        )
 
         # Time since renewed
         logs.append(
@@ -475,6 +487,7 @@ def _fitbitquery(request):
             logs.append('DO UPDATE')
 
             dates_query = [datetime_now - datetime.timedelta(days=x) for x in range(0, 60)]
+            dates_query = [x for x in dates_query if x >= datetime.datetime.fromtimestamp(timestamp_oldest_allowable_query)]
             dates_query = [date.strftime('%Y-%m-%d') for date in dates_query]
 
             # Filter out documents where we already have more recent data, as they should be stable by now
@@ -536,6 +549,8 @@ def _fitbitquery(request):
                             admin.create_document(data_sleep, doc_id=doc_id)
 
             persona_current['fitbit_updated'] = timestamp_current
+            if 'timestamp_oldest_allowable_query' not in persona_current:
+                persona_current['timestamp_oldest_allowable_query'] = timestamp_oldest_allowable_query
             doc_personas.update(
                 admin.update_document(
                     doc_personas
