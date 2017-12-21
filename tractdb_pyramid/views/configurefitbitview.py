@@ -1,14 +1,24 @@
 import base64
 import cornice
+import pyramid.security
 import requests
 import tractdb.server.documents
+
+
+def acl_authenticated(request):
+    return [
+        (pyramid.security.Allow, pyramid.security.Authenticated, 'authenticated'),
+        pyramid.security.DENY_ALL
+    ]
+
 
 service_configure_fitbit = cornice.Service(
     name='configure fitbit',
     path='/configure/fitbit/callback_code',
     description='Configure Fitbit Callback Code',
     cors_origins=('*',),
-    cors_credentials=True
+    cors_credentials=True,
+    acl=acl_authenticated
 )
 
 
@@ -23,7 +33,7 @@ def _get_admin(request):
     return admin
 
 
-@service_configure_fitbit.post()
+@service_configure_fitbit.post(permission='authenticated')
 def post(request):
     """ Receive a Fitbit authentication code, convert it into a token.
     """

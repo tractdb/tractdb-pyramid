@@ -1,13 +1,23 @@
 import cornice
 import couchdb.http
+import pyramid.security
 import tractdb.server.documents
+
+
+def acl_authenticated(request):
+    return [
+        (pyramid.security.Allow, pyramid.security.Authenticated, 'authenticated'),
+        pyramid.security.DENY_ALL
+    ]
+
 
 service_document = cornice.Service(
     name='document',
     path='/document/{id_document}',
     description='TractDB Document',
     cors_origins=('*',),
-    cors_credentials=True
+    cors_credentials=True,
+    acl=acl_authenticated
 )
 
 service_document_collection = cornice.Service(
@@ -15,7 +25,8 @@ service_document_collection = cornice.Service(
     path='/documents',
     description='TractDB Documents Collection',
     cors_origins=('*',),
-    cors_credentials=True
+    cors_credentials=True,
+    acl=acl_authenticated
 )
 
 
@@ -30,7 +41,7 @@ def _get_admin(request):
     return admin
 
 
-@service_document.delete()
+@service_document.delete(permission='authenticated')
 def delete(request):
     """ Delete a document.
     """
@@ -52,7 +63,7 @@ def delete(request):
     request.response.status_int = 200
 
 
-@service_document.get()
+@service_document.get(permission='authenticated')
 def get(request):
     """ Get a document.
     """
@@ -76,7 +87,7 @@ def get(request):
     return doc
 
 
-@service_document.post()
+@service_document.post(permission='authenticated')
 def post(request):
     """ Create a document.
     """
@@ -115,7 +126,7 @@ def post(request):
     }
 
 
-@service_document.put()
+@service_document.put(permission='authenticated')
 def put(request):
     """ Create a document, or modify an existing document.
     """
@@ -169,7 +180,7 @@ def put(request):
     }
 
 
-@service_document_collection.get()
+@service_document_collection.get(permission='authenticated')
 def collection_get(request):
     """ Get a list of documents.
     """
@@ -190,7 +201,7 @@ def collection_get(request):
     }
 
 
-@service_document_collection.post()
+@service_document_collection.post(permission='authenticated')
 def collection_post(request):
     """ Create a document.
     """

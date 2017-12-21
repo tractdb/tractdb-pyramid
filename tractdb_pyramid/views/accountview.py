@@ -1,12 +1,22 @@
 import cornice
+import pyramid.security
 import tractdb.server.accounts
+
+
+def acl_authenticated(request):
+    return [
+        (pyramid.security.Allow, pyramid.security.Authenticated, 'authenticated'),
+        pyramid.security.DENY_ALL
+    ]
+
 
 service_account = cornice.Service(
     name='account',
     path='/account/{id_account}',
     description='TractDB Account',
     cors_origins=('*',),
-    cors_credentials=True
+    cors_credentials=True,
+    acl=acl_authenticated
 )
 
 service_account_collection = cornice.Service(
@@ -14,7 +24,8 @@ service_account_collection = cornice.Service(
     path='/accounts',
     description='TractDB Account Collection',
     cors_origins=('*',),
-    cors_credentials=True
+    cors_credentials=True,
+    acl=acl_authenticated
 )
 
 
@@ -29,7 +40,7 @@ def _get_admin(request):
     return admin
 
 
-@service_account.delete()
+@service_account.delete(permission='authenticated')
 def delete(request):
     """ Delete an account.
     """
@@ -52,7 +63,7 @@ def delete(request):
     request.response.status_int = 200
 
 
-@service_account_collection.get()
+@service_account_collection.get(permission='authenticated')
 def collection_get(request):
     """ Get a list of accounts.
     """
@@ -68,7 +79,7 @@ def collection_get(request):
     }
 
 
-@service_account_collection.post()
+@service_account_collection.post(permission='authenticated')
 def collection_post(request):
     """ Create an account.
     """
