@@ -33,11 +33,7 @@ def main(global_config, **settings):
     config.set_authentication_policy(policy_authentication)
     config.set_authorization_policy(policy_authorization)
 
-    # Sessions
-    config.include('pyramid_beaker')
-
     # Application views
-    config.include('cornice')
     config.scan('tractdb_pyramid.views')
 
     # Make the app

@@ -1,15 +1,25 @@
 import base64
 import cornice
 import datetime
+import pyramid.security
 import requests
 import tractdb.server.documents
+
+
+def acl_authenticated(request):
+    return [
+        (pyramid.security.Allow, pyramid.security.Authenticated, 'authenticated'),
+        pyramid.security.DENY_ALL
+    ]
+
 
 service_fitbitquery = cornice.Service(
     name='familysleep_fitbitquery',
     path='/familysleep/fitbitquery',
     description='Get Fitbit sleep data for known devices',
     cors_origins=('*',),
-    cors_credentials=True
+    cors_credentials=True,
+    acl=acl_authenticated
 )
 
 service_family_daily = cornice.Service(
@@ -17,7 +27,8 @@ service_family_daily = cornice.Service(
     path='/familysleep/familydaily/{date}',
     description='Get data for a family for a single day',
     cors_origins=('*',),
-    cors_credentials=True
+    cors_credentials=True,
+    acl=acl_authenticated
 )
 
 service_family_weekly = cornice.Service(
@@ -25,7 +36,8 @@ service_family_weekly = cornice.Service(
     path='/familysleep/familyweekly/{date}',
     description='Get data for a family for a week',
     cors_origins=('*',),
-    cors_credentials=True
+    cors_credentials=True,
+    acl=acl_authenticated
 )
 
 service_single_daily = cornice.Service(
@@ -33,7 +45,8 @@ service_single_daily = cornice.Service(
     path='/familysleep/singledaily/{pid}/{date}',
     description='Get data for a single person for a single day',
     cors_origins=('*',),
-    cors_credentials=True
+    cors_credentials=True,
+    acl=acl_authenticated
 )
 
 service_single_weekly = cornice.Service(
@@ -41,7 +54,8 @@ service_single_weekly = cornice.Service(
     path='/familysleep/singleweekly/{pid}/{date}',
     description='Get data for a single person for a week',
     cors_origins=('*',),
-    cors_credentials=True
+    cors_credentials=True,
+    acl=acl_authenticated
 )
 
 
@@ -247,7 +261,7 @@ def _compute_single_weekly(*, docs, pid, date, with_chart_data):
     return doc_result
 
 
-@service_family_daily.get()
+@service_family_daily.get(permission='authenticated')
 def service_family_daily_get(request):
     _fitbitquery(request)
 
@@ -278,7 +292,7 @@ def service_family_daily_get(request):
     return doc_result
 
 
-@service_family_weekly.get()
+@service_family_weekly.get(permission='authenticated')
 def service_family_weekly_get(request):
     _fitbitquery(request)
 
@@ -313,7 +327,7 @@ def service_family_weekly_get(request):
     return doc_result
 
 
-@service_single_daily.get()
+@service_single_daily.get(permission='authenticated')
 def service_single_daily_get(request):
     _fitbitquery(request)
 
@@ -344,7 +358,7 @@ def service_single_daily_get(request):
     return doc_result
 
 
-@service_single_weekly.get()
+@service_single_weekly.get(permission='authenticated')
 def service_single_weekly_get(request):
     _fitbitquery(request)
 
@@ -563,7 +577,7 @@ def _fitbitquery(request):
     }
 
 
-@service_fitbitquery.get()
+@service_fitbitquery.get(permission='authenticated')
 def service_fitbitquery_get(request):
     request.response.status_int = 200
 

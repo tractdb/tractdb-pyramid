@@ -1,14 +1,23 @@
 import cornice
 import couchdb.http
-import sys
+import pyramid.security
 import tractdb.server.documents
+
+
+def acl_authenticated(request):
+    return [
+        (pyramid.security.Allow, pyramid.security.Authenticated, 'authenticated'),
+        pyramid.security.DENY_ALL
+    ]
+
 
 service_attachment = cornice.Service(
     name='attachment',
     path='/document/{id_document}/attachment/{id_attachment}',
     description='TractDB Attachment',
     cors_origins=('*',),
-    cors_credentials=True
+    cors_credentials=True,
+    acl=acl_authenticated
 )
 
 service_attachment_collection = cornice.Service(
@@ -16,7 +25,8 @@ service_attachment_collection = cornice.Service(
     path='/document/{id_document}/attachments',
     description='TractDB Attachments Collection',
     cors_origins=('*',),
-    cors_credentials=True
+    cors_credentials=True,
+    acl=acl_authenticated
 )
 
 
@@ -31,7 +41,7 @@ def _get_admin(request):
     return admin
 
 
-@service_attachment.delete()
+@service_attachment.delete(permission='authenticated')
 def delete(request):
     """ Delete an attachment.
     """
@@ -56,7 +66,7 @@ def delete(request):
     request.response.status_int = 200
 
 
-@service_attachment.get()
+@service_attachment.get(permission='authenticated')
 def get(request):
     """ Get an attachment.
     """
@@ -86,7 +96,7 @@ def get(request):
     return request.response
 
 
-@service_attachment.post()
+@service_attachment.post(permission='authenticated')
 def post(request):
     """ Create an attachment on a document.
     """
@@ -129,7 +139,7 @@ def post(request):
     }
 
 
-@service_attachment.put()
+@service_attachment.put(permission='authenticated')
 def put(request):
     """ Modify an existing attachment on a document.
     """
@@ -168,7 +178,7 @@ def put(request):
     }
 
 
-@service_attachment_collection.get()
+@service_attachment_collection.get(permission='authenticated')
 def collection_get(request):
     """ Get a list of attachments on a document.
     """

@@ -1,12 +1,22 @@
 import cornice
+import pyramid.security
 import tractdb.server.accounts
+
+
+def acl_authenticated(request):
+    return [
+        (pyramid.security.Allow, pyramid.security.Authenticated, 'authenticated'),
+        pyramid.security.DENY_ALL
+    ]
+
 
 service_role = cornice.Service(
     name='role',
     path='/account/{id_account}/role/{id_role}',
     description='TractDB Account Role',
     cors_origins=('*',),
-    cors_credentials=True
+    cors_credentials=True,
+    acl=acl_authenticated
 )
 
 service_role_collection = cornice.Service(
@@ -14,7 +24,8 @@ service_role_collection = cornice.Service(
     path='/account/{id_account}/roles',
     description='TractDB Account Roles Collection',
     cors_origins=('*',),
-    cors_credentials=True
+    cors_credentials=True,
+    acl=acl_authenticated
 )
 
 
@@ -29,7 +40,7 @@ def _get_admin(request):
     return admin
 
 
-@service_role.delete()
+@service_role.delete(permission='authenticated')
 def delete(request):
     """ Delete a role.
     """
@@ -58,7 +69,7 @@ def delete(request):
     request.response.status_int = 200
 
 
-@service_role_collection.get()
+@service_role_collection.get(permission='authenticated')
 def collection_get(request):
     """ Get a list of roles.
     """
@@ -85,7 +96,7 @@ def collection_get(request):
     }
 
 
-@service_role_collection.post()
+@service_role_collection.post(permission='authenticated')
 def collection_post(request):
     """ Create an role for an account.
     """

@@ -27,3 +27,6 @@ tractdb_pyramid.egg-info
 pyramid_config.combined.ini
 pyramid_config.combined.localized.ini
 tests/test-compose.localized.yml
+
+# Sessions created by Pyramid during testing
+/sessions
