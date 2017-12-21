@@ -1,5 +1,4 @@
 import nose.tools
-import requests
 import tests.utilities
 
 
@@ -13,6 +12,12 @@ class TestAccountView:
             cls.utilities.test_account_name()
         )
 
+        # Create a admin session
+        cls.session_admin = cls.utilities.session_pyramid(
+            cls.utilities.test_account_admin_name(),
+            cls.utilities.test_account_admin_password()
+        )
+
     @classmethod
     def teardown_class(cls):
         # Clean up our account
@@ -24,7 +29,7 @@ class TestAccountView:
         cls = type(self)
 
         # Create the account
-        r = requests.post(
+        r = cls.session_admin.post(
             '{}/{}'.format(
                 cls.utilities.url_base_pyramid(),
                 'accounts'
@@ -37,7 +42,7 @@ class TestAccountView:
         nose.tools.assert_equal(r.status_code, 201)
 
         # Creating it again should fail
-        r = requests.post(
+        r = cls.session_admin.post(
             '{}/{}'.format(
                 cls.utilities.url_base_pyramid(),
                 'accounts'
@@ -50,7 +55,7 @@ class TestAccountView:
         nose.tools.assert_equal(r.status_code, 409)
 
         # Test the account exists
-        r = requests.get(
+        r = cls.session_admin.get(
             '{}/{}'.format(
                 cls.utilities.url_base_pyramid(),
                 'accounts'
@@ -60,7 +65,7 @@ class TestAccountView:
         nose.tools.assert_in(cls.utilities.test_account_name(), r.json()['accounts'])
 
         # Delete the account
-        r = requests.delete(
+        r = cls.session_admin.delete(
             '{}/{}/{}'.format(
                 cls.utilities.url_base_pyramid(),
                 'account',
@@ -70,7 +75,7 @@ class TestAccountView:
         nose.tools.assert_equal(r.status_code, 200)
 
         # Test that deleting the account again fails
-        r = requests.delete(
+        r = cls.session_admin.delete(
             '{}/{}/{}'.format(
                 cls.utilities.url_base_pyramid(),
                 'account',
@@ -80,7 +85,7 @@ class TestAccountView:
         nose.tools.assert_equal(r.status_code, 404)
 
         # Test the account is gone
-        r = requests.get(
+        r = cls.session_admin.get(
             '{}/{}'.format(
                 cls.utilities.url_base_pyramid(),
                 'accounts'

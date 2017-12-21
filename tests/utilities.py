@@ -40,18 +40,14 @@ class Utilities:
         return client
 
     def create_admin(self):
-        # Parse our couchdb secrets
-        with open('tests/test-secrets/couchdb.yml') as f:
-            couchdb_secrets = yaml.safe_load(f)
-
         # Create an admin object
         admin = tractdb.server.accounts.AccountsAdmin(
             couchdb_url='http://{}:{}'.format(
                 base.docker.machine_ip(),
                 5984
             ),
-            couchdb_admin=couchdb_secrets['admin']['user'],
-            couchdb_admin_password=couchdb_secrets['admin']['password']
+            couchdb_admin=self.test_account_admin_name(),
+            couchdb_admin_password=self.test_account_admin_password()
         )
 
         return admin
@@ -116,6 +112,20 @@ class Utilities:
         nose.tools.assert_equal(response.status_code, 200)
 
         return session
+
+    def test_account_admin_name(self):
+        # Parse our couchdb secrets
+        with open('tests/test-secrets/couchdb.yml') as f:
+            couchdb_secrets = yaml.safe_load(f)
+
+            return couchdb_secrets['admin']['user']
+
+    def test_account_admin_password(self):
+        # Parse our couchdb secrets
+        with open('tests/test-secrets/couchdb.yml') as f:
+            couchdb_secrets = yaml.safe_load(f)
+
+            return couchdb_secrets['admin']['password']
 
     def test_account_name(self, account_index=0):
         return 'account_{}_{}'.format(
