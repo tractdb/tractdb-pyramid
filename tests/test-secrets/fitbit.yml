@@ -1,0 +1,4 @@
+# Secrets for Fitbit
+fitbit_id: 'fitbit-id-test'
+fitbit_secret: 'fitbit-secret-test'
+fitbit_redirect_uri: 'fitbit-redirect-uri-test'

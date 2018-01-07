@@ -160,8 +160,8 @@ class TestDocumentView:
 
         # The body should include an ID too
         body = response_post.json()
-        nose.tools.assert_in('id', body)
-        doc_id = body['id']
+        nose.tools.assert_in('_id', body)
+        doc_id = body['_id']
 
         # Also get the document via that
         response = session.get(
@@ -218,8 +218,8 @@ class TestDocumentView:
 
         # Recover the ID of the created document
         body = response_post.json()
-        nose.tools.assert_in('id', body)
-        doc_id = body['id']
+        nose.tools.assert_in('_id', body)
+        doc_id = body['_id']
 
         # Get the document
         response = session.get(
@@ -247,7 +247,7 @@ class TestDocumentView:
         nose.tools.assert_equal(put_response.status_code, 200)
 
         # Update the rev with what we got back from the server
-        doc['_rev'] = put_response.json()['rev']
+        doc['_rev'] = put_response.json()['_rev']
 
         # Get the document again
         response = session.get(
