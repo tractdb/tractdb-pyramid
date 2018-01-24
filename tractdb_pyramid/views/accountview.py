@@ -40,6 +40,7 @@ def _get_admin(request):
     return admin
 
 
+# TODO: need something stronger here
 @service_account.delete(permission='authenticated')
 def delete(request):
     """ Delete an account.
@@ -79,7 +80,8 @@ def collection_get(request):
     }
 
 
-@service_account_collection.post(permission='authenticated')
+# We can't require being logged in when we want to create an account
+@service_account_collection.post()
 def collection_post(request):
     """ Create an account.
     """
