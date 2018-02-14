@@ -89,7 +89,7 @@ def _prepare_content_empty_day_sleep(*, docs, pid, date):
     return doc_result
 
 
-def _compute_minutes_chart_data(*, fitbit_minute_data, time_start=datetime.time(hour=17), time_end=datetime.time(hour=8)):
+def _compute_minutes_chart_data(*, fitbit_minute_data, time_start=datetime.time(hour=18, minute=30), time_end=datetime.time(hour=9, minute=30)):
     # Determine how 'long' our chart data is
     number_minutes_to_plot = (
         datetime.datetime.combine(datetime.date.min + datetime.timedelta(days=1), time_end) -
